@@ -8,10 +8,17 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- Background blobs -->
+  <div class="bg-deco">
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="bg-blob blob3"></div>
+  </div>
+
   <nav class="navbar">
     <div class="nav-inner">
       <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
-      <button class="nav-hamburger">☰</button>
+      <button class="nav-hamburger" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
       <div class="nav-links">
         <a href="subjects.html">Предметы</a>
         <a href="test.html">Диагностика</a>
@@ -22,48 +29,53 @@
     </div>
   </nav>
 
+  <!-- Hero -->
   <section class="hero">
     <div class="hero-inner">
-      <h1>Учись легко и с удовольствием! ✨</h1>
+      <div class="hero-badge">✨ Образовательная платформа</div>
+      <h1>Учись легко<br>и с <span>удовольствием!</span></h1>
       <p class="hero-sub">Умные персонажи помогут разобраться в любом предмете. Пройди диагностику и получай знания в своём темпе!</p>
       <div class="hero-btns">
         <a href="test.html" class="btn btn-primary btn-large">Пройти диагностику →</a>
-        <a href="subjects.html" class="btn btn-secondary btn-large">Выбрать предмет →</a>
+        <a href="subjects.html" class="btn-ghost btn-large" style="border-radius:16px;padding:14px 32px;font-size:1rem;font-weight:800;display:inline-block;background:var(--card);border:1.5px solid var(--border);color:var(--text2);cursor:pointer;transition:.2s;font-family:'Nunito',sans-serif;">Выбрать предмет</a>
       </div>
     </div>
   </section>
 
-  <section class="section">
-    <div class="container">
-      <h2 class="section-title">Все предметы</h2>
-      <div class="subjects-strip" id="subjects-strip">
-        <div class="loading-text">Загружаем предметы...</div>
-      </div>
+  <!-- Subjects strip -->
+  <section class="subjects-strip-section">
+    <div class="container" style="padding-bottom:0">
+      <div class="section-label" style="padding: 0 4px 0 0">📚 Все предметы</div>
+    </div>
+    <div class="subjects-strip-scroll" id="subjects-strip">
+      <div class="loading-text">Загружаем предметы...</div>
     </div>
   </section>
 
-  <section class="section section-alt">
-    <div class="container">
-      <h2 class="section-title">Как это работает</h2>
-      <div class="steps-grid">
-        <div class="step-card">
-          <div class="step-num">1</div>
-          <div class="step-icon">🎯</div>
-          <h3>Пройди тест</h3>
-          <p>Диагностика определит твой стиль обучения и покажет, где у тебя пробелы</p>
-        </div>
-        <div class="step-card">
-          <div class="step-num">2</div>
-          <div class="step-icon">📖</div>
-          <h3>Учи темы</h3>
-          <p>Читай теорию, общайся с персонажем-помощником и выполняй упражнения</p>
-        </div>
-        <div class="step-card">
-          <div class="step-num">3</div>
-          <div class="step-icon">🏅</div>
-          <h3>Получай значки</h3>
-          <p>За каждое достижение ты получаешь XP и красивые значки в свою коллекцию</p>
-        </div>
+  <!-- How it works -->
+  <section class="steps-section">
+    <div style="text-align:center;margin-bottom:32px;position:relative;z-index:5">
+      <div class="section-label">🚀 Как это работает</div>
+      <div class="section-title">Три шага к знаниям</div>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card fade-up" style="animation-delay:.05s">
+        <div class="step-num">1</div>
+        <span class="step-icon">🎯</span>
+        <h3>Пройди тест</h3>
+        <p>Диагностика определит твой стиль обучения и покажет, где у тебя пробелы</p>
+      </div>
+      <div class="step-card fade-up" style="animation-delay:.15s">
+        <div class="step-num">2</div>
+        <span class="step-icon">📖</span>
+        <h3>Учи темы</h3>
+        <p>Читай теорию, общайся с персонажем-помощником и выполняй упражнения</p>
+      </div>
+      <div class="step-card fade-up" style="animation-delay:.25s">
+        <div class="step-num">3</div>
+        <span class="step-icon">🏅</span>
+        <h3>Получай значки</h3>
+        <p>За каждое достижение ты получаешь XP и красивые значки в свою коллекцию</p>
       </div>
     </div>
   </section>
@@ -83,14 +95,14 @@
         const strip = document.getElementById('subjects-strip');
         strip.innerHTML = subjects.map(s => `
           <a href="subject.html?id=${s.id}&grade=${getGrade()}" class="subject-mini-card" style="border-top:4px solid ${s.color}">
-            <div class="subject-mini-emoji">${s.emoji}</div>
+            <span class="subject-mini-emoji">${s.emoji}</span>
             <div class="subject-mini-name">${s.name}</div>
             <div class="subject-mini-char">${s.char}</div>
           </a>
         `).join('');
       })
       .catch(() => {
-        document.getElementById('subjects-strip').innerHTML = '<p>Не удалось загрузить предметы</p>';
+        document.getElementById('subjects-strip').innerHTML = '<p style="padding:0 20px;color:var(--text3)">Не удалось загрузить предметы</p>';
       });
   </script>
 </body>

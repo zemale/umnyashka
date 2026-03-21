@@ -8,10 +8,16 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <div class="bg-deco">
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="bg-blob blob3"></div>
+  </div>
+
   <nav class="navbar">
     <div class="nav-inner">
       <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
-      <button class="nav-hamburger">☰</button>
+      <button class="nav-hamburger" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
       <div class="nav-links">
         <a href="subjects.html">Предметы</a>
         <a href="test.html">Диагностика</a>
@@ -22,18 +28,20 @@
     </div>
   </nav>
 
-  <div class="container" style="padding-top:30px">
-    <h1 style="color:var(--brown);margin-bottom:8px">Выбери предмет 📚</h1>
-    <p style="color:var(--peach);margin-bottom:24px">Выбери класс и предмет для обучения</p>
-
-    <div class="grade-tabs">
+  <div class="subjects-page-header">
+    <div class="section-label">📚 Учебные предметы</div>
+    <h1>Выбери предмет</h1>
+    <p>Выбери класс и предмет для обучения</p>
+    <div class="grade-tabs" id="grade-tabs">
       <button class="grade-btn" data-grade="5">5 класс</button>
       <button class="grade-btn" data-grade="6">6 класс</button>
       <button class="grade-btn" data-grade="7">7 класс</button>
       <button class="grade-btn" data-grade="8">8 класс</button>
       <button class="grade-btn" data-grade="9">9 класс</button>
     </div>
+  </div>
 
+  <div class="container" style="padding-top:8px;padding-bottom:60px">
     <div class="subjects-grid" id="subjects-grid">
       <div class="loading-text">Загружаем предметы...</div>
     </div>
@@ -74,12 +82,11 @@
         const gradeTopics = (topicsData[s.id] && topicsData[s.id][grade]) || [];
         const total = gradeTopics.length;
         const prog = getProgress(s.id, grade, total);
-        const xp = getXP();
 
         return `
           <div class="subject-card" style="border-top:4px solid ${s.color}">
-            <div class="subject-card-emoji">${s.emoji}</div>
-            <h3 class="subject-card-name">${s.name}</h3>
+            <span class="subject-card-emoji">${s.emoji}</span>
+            <div class="subject-card-name">${s.name}</div>
             <div class="subject-card-char">Персонаж: ${s.char}</div>
             ${total > 0 ? `
               <div class="progress-label">${prog.done} из ${prog.total} тем</div>
@@ -87,7 +94,7 @@
                 <div class="progress-bar-fill" style="width:${prog.pct}%;background:${s.color}"></div>
               </div>
             ` : '<div class="progress-label" style="color:var(--peach)">Темы скоро появятся</div>'}
-            <a href="subject.html?id=${s.id}&grade=${grade}" class="btn btn-primary" style="width:100%;text-align:center;margin-top:12px;background:${s.color}">Открыть →</a>
+            <a href="subject.html?id=${s.id}&grade=${grade}" class="btn btn-primary" style="width:100%;margin-top:14px">Открыть →</a>
           </div>
         `;
       }).join('');

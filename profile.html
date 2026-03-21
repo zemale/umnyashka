@@ -6,12 +6,34 @@
   <title>Профиль — УмНяшка 🧠</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .activity-dots { display: flex; gap: 8px; flex-wrap: wrap; }
+    .activity-dot { width: 28px; height: 28px; border-radius: 8px; background: var(--bg2); border: 1.5px solid var(--border); transition: .2s; }
+    .activity-dot.active { background: linear-gradient(135deg, var(--sage), #5a9e72); border-color: var(--sage); }
+    .avatar-btn {
+      background: none; border: 2px solid transparent; border-radius: 10px;
+      font-size: 1.7rem; cursor: pointer; padding: 4px; transition: .2s;
+      font-family: 'Nunito', sans-serif;
+    }
+    .avatar-btn:hover, .avatar-btn.selected {
+      border-color: var(--sage); background: var(--sage-light); transform: scale(1.15);
+    }
+    .badge-card-emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+    .badge-card-name { font-size: .78rem; font-weight: 800; color: var(--text); }
+    .badge-card-xp { font-size: .7rem; color: var(--sage); font-weight: 800; margin-top: 4px; }
+  </style>
 </head>
 <body>
+  <div class="bg-deco">
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="bg-blob blob3"></div>
+  </div>
+
   <nav class="navbar">
     <div class="nav-inner">
       <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
-      <button class="nav-hamburger">☰</button>
+      <button class="nav-hamburger" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
       <div class="nav-links">
         <a href="subjects.html">Предметы</a>
         <a href="test.html">Диагностика</a>
@@ -22,26 +44,25 @@
     </div>
   </nav>
 
-  <div class="container" style="padding-top:30px;max-width:900px">
-    <!-- Avatar & Nickname -->
+  <div class="container" style="padding-top:32px;padding-bottom:60px;max-width:900px">
+
+    <!-- Profile header -->
     <div class="profile-header">
       <div id="avatar-display" class="profile-avatar-big">🦊</div>
       <div class="profile-info">
         <input type="text" id="nickname-input" class="nickname-input" placeholder="Твой ник" maxlength="20">
         <div id="level-label" class="level-label">Новичок</div>
         <div class="level-bar-wrap">
-          <div class="level-bar-fill" id="level-bar"></div>
+          <div class="level-bar-fill" id="level-bar" style="width:0%"></div>
         </div>
-        <div id="level-progress-text" style="font-size:0.8rem;color:var(--brown);margin-top:4px"></div>
+        <div id="level-progress-text" style="font-size:.8rem;color:var(--text3);margin-top:6px;font-weight:700"></div>
       </div>
     </div>
 
     <!-- Avatar Picker -->
     <div class="section-card">
-      <h3 style="color:var(--brown);margin-bottom:12px">Выбери аватар</h3>
-      <div class="avatar-grid" id="avatar-grid">
-        🦊 🐼 🦁 🐯 🦋 🦄 🐬 🦅 🐙 🌟 💎 🚀 🎨 🎮 🎵 📚 🏆 🌈 ⚡ 🔮
-      </div>
+      <h3>Выбери аватар</h3>
+      <div class="avatar-grid" id="avatar-grid"></div>
     </div>
 
     <!-- Stats -->
@@ -66,20 +87,22 @@
 
     <!-- Activity -->
     <div class="section-card">
-      <h3 style="color:var(--brown);margin-bottom:12px">Активность (14 дней)</h3>
+      <h3>Активность (14 дней)</h3>
       <div class="activity-dots" id="activity-dots"></div>
     </div>
 
     <!-- Subject Progress -->
     <div class="section-card">
-      <h3 style="color:var(--brown);margin-bottom:16px">Прогресс по предметам</h3>
-      <div id="subject-progress">Загрузка...</div>
+      <h3>Прогресс по предметам</h3>
+      <div id="subject-progress" class="loading-text" style="padding:20px 0">Загрузка...</div>
     </div>
 
     <!-- Badges -->
     <div class="section-card">
-      <h3 style="color:var(--brown);margin-bottom:16px">Значки</h3>
-      <div class="badges-grid" id="badges-grid">Загрузка...</div>
+      <h3>Значки</h3>
+      <div class="badges-grid" id="badges-grid">
+        <div class="loading-text" style="padding:20px 0">Загрузка...</div>
+      </div>
     </div>
   </div>
 
@@ -147,10 +170,10 @@
           const total = gradeTopics.length;
           const prog = getProgress(s.id, grade, total);
           return `
-            <div style="margin-bottom:12px">
-              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                <span style="font-weight:700">${s.emoji} ${s.name}</span>
-                <span style="color:var(--brown);font-size:0.9rem">${prog.done}/${prog.total}</span>
+            <div style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                <span style="font-weight:800;color:var(--text)">${s.emoji} ${s.name}</span>
+                <span style="color:var(--text3);font-size:.85rem;font-weight:700">${prog.done}/${prog.total}</span>
               </div>
               <div class="progress-bar-wrap">
                 <div class="progress-bar-fill" style="width:${prog.pct}%;background:${s.color}"></div>
@@ -169,7 +192,7 @@
             const isEarned = earned.includes(b.id);
             return `
               <div class="badge-card ${isEarned ? 'earned' : 'locked'}" title="${b.desc}">
-                <div class="badge-card-emoji">${isEarned ? b.emoji : '🔒'}</div>
+                <span class="badge-card-emoji">${isEarned ? b.emoji : '🔒'}</span>
                 <div class="badge-card-name">${b.name}</div>
                 ${isEarned ? `<div class="badge-card-xp">+${b.xp_bonus} XP</div>` : ''}
               </div>
@@ -177,7 +200,7 @@
           }).join('');
         })
         .catch(() => {
-          document.getElementById('badges-grid').innerHTML = '<p style="color:var(--brown)">Не удалось загрузить значки</p>';
+          document.getElementById('badges-grid').innerHTML = '<p style="color:var(--text3)">Не удалось загрузить значки</p>';
         });
     }
 

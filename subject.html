@@ -8,10 +8,16 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <div class="bg-deco">
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="bg-blob blob3"></div>
+  </div>
+
   <nav class="navbar">
     <div class="nav-inner">
       <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
-      <button class="nav-hamburger">☰</button>
+      <button class="nav-hamburger" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
       <div class="nav-links">
         <a href="subjects.html">Предметы</a>
         <a href="test.html">Диагностика</a>
@@ -22,13 +28,13 @@
     </div>
   </nav>
 
-  <div id="subject-header" class="subject-header-banner">
-    Загрузка...
-  </div>
+  <div id="subject-header" class="subject-header-banner"></div>
 
-  <div class="container" style="padding-top:24px">
-    <a href="subjects.html" class="back-link">← Все предметы</a>
-    <div id="topics-list" style="margin-top:20px">
+  <div class="container" style="padding-top:20px;padding-bottom:60px">
+    <div class="topics-header" style="padding:0 0 20px">
+      <a href="subjects.html" class="back-link">← Все предметы</a>
+    </div>
+    <div id="topics-list">
       <div class="loading-text">Загружаем темы...</div>
     </div>
   </div>
@@ -47,13 +53,12 @@
       const subj = subjects.find(s => s.id === subjectId) || subjects[0];
       document.title = subj.name + ' — УмНяшка 🧠';
 
-      // Header
       document.getElementById('subject-header').innerHTML = `
-        <div class="subject-banner-inner" style="background:linear-gradient(135deg,${subj.color},${subj.color}cc)">
+        <div class="subject-banner-inner" style="background:linear-gradient(135deg,${subj.color},${subj.color}bb)">
           <div class="subject-banner-emoji">${subj.emoji}</div>
           <div>
-            <h1 style="color:white;margin:0;font-size:1.8rem">${subj.name}</h1>
-            <div style="color:rgba(255,255,255,0.85);font-size:1rem;margin-top:4px">Привет! Я ${subj.char} 👋 Готов учиться? Выбери тему!</div>
+            <h1 style="color:white;margin:0;font-size:1.8rem;font-weight:900">${subj.name}</h1>
+            <div style="color:rgba(255,255,255,0.88);font-size:.95rem;margin-top:6px">Привет! Я ${subj.char} 👋 Готов учиться? Выбери тему!</div>
           </div>
         </div>
       `;
@@ -62,9 +67,9 @@
 
       if (gradeTopics.length === 0) {
         document.getElementById('topics-list').innerHTML = `
-          <div style="text-align:center;padding:40px;color:var(--brown)">
-            <div style="font-size:3rem">📭</div>
-            <h3>Темы для ${grade} класса скоро появятся!</h3>
+          <div style="text-align:center;padding:60px 20px">
+            <div style="font-size:3.5rem;margin-bottom:16px">📭</div>
+            <h3 style="font-size:1.2rem;font-weight:900;color:var(--text);margin-bottom:8px">Темы для ${grade} класса скоро появятся!</h3>
             <a href="subjects.html" class="btn btn-primary" style="margin-top:16px">Выбрать другой предмет</a>
           </div>`;
         return;
@@ -81,13 +86,13 @@
             <div class="topic-info">
               <div class="topic-title">${topic.title}</div>
               <div class="topic-meta">
-                ${renderStars(topic.difficulty || 1)}
+                <span class="stars">${renderStars(topic.difficulty || 1)}</span>
                 <span class="topic-xp">+${topic.xp || 20} XP</span>
               </div>
             </div>
             ${locked
-              ? '<span class="topic-locked-label">Заблокировано</span>'
-              : `<a href="topic.html?subject=${subjectId}&grade=${grade}&topic=${topic.id}" class="btn btn-sm ${done ? 'btn-secondary' : 'btn-primary'}">${done ? 'Повторить' : 'Учить →'}</a>`
+              ? '<span class="topic-locked-label">🔒 Заблокировано</span>'
+              : `<a href="topic.html?subject=${subjectId}&grade=${grade}&topic=${topic.id}" class="btn ${done ? 'btn-secondary' : 'btn-primary'} btn-sm">${done ? 'Повторить' : 'Учить →'}</a>`
             }
           </div>
         `;

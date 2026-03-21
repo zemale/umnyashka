@@ -8,10 +8,16 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <div class="bg-deco">
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="bg-blob blob3"></div>
+  </div>
+
   <nav class="navbar">
     <div class="nav-inner">
       <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
-      <button class="nav-hamburger">☰</button>
+      <button class="nav-hamburger" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
       <div class="nav-links">
         <a href="subjects.html">Предметы</a>
         <a href="test.html">Диагностика</a>
@@ -35,14 +41,14 @@
       <div class="chat-char-header" id="chat-char-header">
         <span id="chat-char-emoji" style="font-size:2rem">🤖</span>
         <div>
-          <div id="chat-char-name" style="font-weight:800;color:var(--brown)">Персонаж</div>
-          <div style="font-size:0.8rem;color:var(--peach)">спрашивай меня!</div>
+          <div id="chat-char-name" style="font-weight:800;color:var(--text)">Персонаж</div>
+          <div style="font-size:.78rem;color:var(--text3);font-weight:700">спрашивай меня!</div>
         </div>
       </div>
       <div class="chat-messages" id="chat-messages"></div>
       <div class="chat-input-row">
         <input type="text" id="chat-input" class="chat-input" placeholder="Задай вопрос...">
-        <button id="chat-send" class="btn btn-primary">→</button>
+        <button id="chat-send" class="btn btn-primary btn-sm">→</button>
       </div>
       <button id="chat-clear" class="btn btn-sm btn-secondary" style="margin-top:8px;width:100%">Очистить чат</button>
     </div>
@@ -50,7 +56,8 @@
 
   <!-- Exercises -->
   <div class="exercises-section container" id="exercises-section" style="display:none">
-    <h2 style="color:var(--brown);margin-bottom:16px">Упражнения</h2>
+    <div class="section-label">📝 Упражнения</div>
+    <h2>Закрепи знания</h2>
     <div class="ex-tabs">
       <button class="ex-tab active" data-tab="mcq">🎯 Тест</button>
       <button class="ex-tab" data-tab="fill">✏️ Пропуски</button>
@@ -87,7 +94,7 @@
       allTopics = gradeTopics;
       const topic = gradeTopics.find(t => t.id === topicId) || gradeTopics[0];
       if (!topic) {
-        document.getElementById('theory-panel').innerHTML = '<p>Тема не найдена</p>';
+        document.getElementById('theory-panel').innerHTML = '<p style="color:var(--text3)">Тема не найдена</p>';
         return;
       }
       currentTopic = topic;
@@ -102,18 +109,18 @@
 
       // Theory
       document.getElementById('theory-panel').innerHTML = `
-        <h1 style="color:var(--brown);font-size:1.6rem;margin-bottom:16px">${topic.title}</h1>
-        <p style="line-height:1.7;color:#444;margin-bottom:20px">${topic.theory}</p>
+        <h2>${topic.title}</h2>
+        <p>${topic.theory}</p>
         ${topic.formulas && topic.formulas.length ? `
           <div class="formula-box">
-            <div style="font-weight:800;color:var(--brown);margin-bottom:8px">📐 Формулы</div>
-            ${topic.formulas.map(f => `<div class="formula-item">${f}</div>`).join('')}
+            <div style="font-weight:800;color:var(--text);margin-bottom:8px">📐 Формулы</div>
+            ${topic.formulas.map(f => `<div style="margin-bottom:6px">${f}</div>`).join('')}
           </div>
         ` : ''}
         ${topic.example ? `
           <div class="example-box">
-            <div style="font-weight:800;color:var(--sage);margin-bottom:8px">💡 Пример</div>
-            <div style="color:#444;line-height:1.6">${topic.example}</div>
+            <div style="font-weight:800;color:var(--sky);margin-bottom:8px">💡 Пример</div>
+            <div style="line-height:1.6">${topic.example}</div>
           </div>
         ` : ''}
       `;
@@ -122,7 +129,6 @@
       document.getElementById('chat-char-emoji').textContent = subj.emoji;
       document.getElementById('chat-char-name').textContent = subj.char;
 
-      // Init chat with topic context so character knows what's being studied
       initChat(subjectId, { title: topic.title, theory: topic.theory });
 
       // Exercises
@@ -135,9 +141,9 @@
         renderMatch(ex.match || []);
       } else {
         document.getElementById('exercises-section').style.display = 'block';
-        document.getElementById('ex-mcq').innerHTML = '<p style="color:var(--brown);text-align:center;padding:20px">Упражнений пока нет для этой темы 😊 Скоро добавим!</p>';
-        document.getElementById('ex-fill').innerHTML = '<p style="color:var(--brown);text-align:center;padding:20px">Упражнений пока нет для этой темы 😊 Скоро добавим!</p>';
-        document.getElementById('ex-match').innerHTML = '<p style="color:var(--brown);text-align:center;padding:20px">Упражнений пока нет для этой темы 😊 Скоро добавим!</p>';
+        document.getElementById('ex-mcq').innerHTML = '<p style="color:var(--text3);text-align:center;padding:20px">Упражнений пока нет для этой темы 😊 Скоро добавим!</p>';
+        document.getElementById('ex-fill').innerHTML = '<p style="color:var(--text3);text-align:center;padding:20px">Упражнений пока нет для этой темы 😊 Скоро добавим!</p>';
+        document.getElementById('ex-match').innerHTML = '<p style="color:var(--text3);text-align:center;padding:20px">Упражнений пока нет для этой темы 😊 Скоро добавим!</p>';
       }
 
       // Tab switching
@@ -153,13 +159,13 @@
 
     function renderMCQ(questions) {
       const panel = document.getElementById('ex-mcq');
-      if (!questions.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--brown)">Нет вопросов</p>'; return; }
+      if (!questions.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text3)">Нет вопросов</p>'; return; }
       let score = 0;
       let answered = 0;
 
       panel.innerHTML = questions.map((q, qi) => `
         <div class="mcq-question" id="mcq-q${qi}">
-          <div class="mcq-text">${qi+1}. ${q.question}</div>
+          <div class="mcq-text" style="font-weight:800;color:var(--text);margin-bottom:12px">${qi+1}. ${q.question}</div>
           <div class="mcq-answers">
             ${q.options.map((opt, oi) => `
               <button class="answer-btn" onclick="mcqAnswer(${qi},${oi},${q.correct},'${panel.id}')">${opt}</button>
@@ -187,19 +193,19 @@
 
     function renderFill(items) {
       const panel = document.getElementById('ex-fill');
-      if (!items.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--brown)">Нет упражнений</p>'; return; }
+      if (!items.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text3)">Нет упражнений</p>'; return; }
 
       panel.innerHTML = items.map((item, i) => {
         const parts = item.sentence.split('___');
         return `
-          <div class="fill-item" id="fill-${i}">
-            <div class="fill-sentence">
+          <div class="fill-item" id="fill-${i}" style="margin-bottom:16px">
+            <div class="fill-sentence" style="font-size:.95rem;color:var(--text);margin-bottom:8px">
               ${parts[0]}<input type="text" class="fill-input" id="fill-input-${i}" placeholder="..."> ${parts[1] || ''}
             </div>
-            <div style="display:flex;gap:8px;margin-top:8px">
+            <div style="display:flex;gap:8px">
               <button class="btn btn-primary btn-sm" onclick="checkFill(${i},'${item.answer}')">Проверить</button>
             </div>
-            <div class="fill-hint" id="fill-hint-${i}" style="display:none;color:var(--peach);margin-top:8px">
+            <div class="fill-hint" id="fill-hint-${i}" style="display:none;color:var(--peach);margin-top:8px;font-size:.85rem;font-weight:700">
               💡 Подсказка: ${item.hint || 'Подумай ещё!'}
             </div>
           </div>
@@ -212,8 +218,7 @@
         const val = input.value.trim().toLowerCase();
         const correct = answer.toLowerCase();
         if (val === correct || val.includes(correct) || correct.includes(val)) {
-          input.style.borderColor = 'var(--sage)';
-          input.style.background = '#e8f5e9';
+          input.classList.add('correct');
           input.disabled = true;
           fillDone++;
           if (fillDone === items.length) {
@@ -222,15 +227,16 @@
             checkCompletion();
           }
         } else {
-          input.style.borderColor = 'var(--peach)';
+          input.classList.add('wrong');
           document.getElementById('fill-hint-' + i).style.display = 'block';
+          setTimeout(() => input.classList.remove('wrong'), 1000);
         }
       };
     }
 
     function renderMatch(pairs) {
       const panel = document.getElementById('ex-match');
-      if (!pairs.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--brown)">Нет упражнений</p>'; return; }
+      if (!pairs.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text3)">Нет упражнений</p>'; return; }
 
       const shuffledRight = [...pairs].sort(() => Math.random() - 0.5);
       let selectedLeft = null;
@@ -238,10 +244,10 @@
 
       panel.innerHTML = `
         <div class="match-grid">
-          <div class="match-col" id="match-left">
+          <div id="match-left">
             ${pairs.map((p, i) => `<div class="match-item" data-idx="${i}" data-side="left" onclick="selectMatch(this)">${p.left}</div>`).join('')}
           </div>
-          <div class="match-col" id="match-right">
+          <div id="match-right">
             ${shuffledRight.map((p, i) => `<div class="match-item" data-val="${p.left}" data-side="right" onclick="selectMatch(this)">${p.right}</div>`).join('')}
           </div>
         </div>
@@ -257,7 +263,6 @@
           el.classList.add('selected');
           selectedLeft = el;
         } else if (selectedLeft) {
-          // Check match
           const leftIdx = parseInt(selectedLeft.dataset.idx);
           const leftVal = pairs[leftIdx].left;
           const rightVal = el.dataset.val;
@@ -291,19 +296,16 @@
         const xp = currentTopic ? currentTopic.xp || 20 : 20;
         markTopicDone(subjectId, grade, topicId || (currentTopic && currentTopic.id), xp);
 
-        // Find next topic
         const idx = allTopics.findIndex(t => t.id === (topicId || (currentTopic && currentTopic.id)));
         const next = allTopics[idx + 1];
 
         const completion = document.getElementById('ex-completion');
         completion.style.display = 'block';
         completion.innerHTML = `
-          <div style="text-align:center;padding:30px">
-            <div style="font-size:3rem">🎉</div>
-            <h3 style="color:var(--brown);margin:12px 0">Отлично! +${xp} XP</h3>
-            <p style="color:var(--peach)">Тема пройдена! Продолжай в том же духе!</p>
-            ${next ? `<a href="topic.html?subject=${subjectId}&grade=${grade}&topic=${next.id}" class="btn btn-primary" style="margin-top:12px">Следующая тема: ${next.title} →</a>` : `<a href="subject.html?id=${subjectId}&grade=${grade}" class="btn btn-secondary" style="margin-top:12px">Вернуться к темам</a>`}
-          </div>
+          <div style="font-size:2.5rem;margin-bottom:12px">🎉</div>
+          <h3 style="font-size:1.2rem;font-weight:900;color:var(--text);margin-bottom:8px">Отлично! +${xp} XP</h3>
+          <p style="color:var(--text2);margin-bottom:20px">Тема пройдена! Продолжай в том же духе!</p>
+          ${next ? `<a href="topic.html?subject=${subjectId}&grade=${grade}&topic=${next.id}" class="btn btn-primary">Следующая тема: ${next.title} →</a>` : `<a href="subject.html?id=${subjectId}&grade=${grade}" class="btn btn-secondary">Вернуться к темам</a>`}
         `;
       }
     }
