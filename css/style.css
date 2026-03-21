@@ -20,7 +20,7 @@ body {
   font-family: 'Nunito', sans-serif;
   background: var(--cream);
   color: var(--brown);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.6;
 }
 
@@ -99,13 +99,14 @@ nav {
 .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(107,79,53,0.15); }
 
 /* ========== BUTTONS ========== */
+.btn-sm { padding: 10px 18px; font-size: 1rem; border-radius: 10px; }
 .btn {
   display: inline-block;
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 14px 28px;
+  border-radius: 10px;
   font-family: 'Nunito', sans-serif;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.1rem;
   cursor: pointer;
   border: none;
   transition: transform 0.2s ease, opacity 0.2s ease;
@@ -119,8 +120,8 @@ nav {
 .btn-secondary { background: var(--warm); color: var(--brown); }
 .btn-success { background: var(--sage); color: white; }
 .btn-sky { background: var(--sky); color: white; }
-.btn-sm { padding: 8px 16px; font-size: 0.9rem; }
-.btn-lg { padding: 16px 32px; font-size: 1.1rem; }
+.btn-sm { padding: 10px 18px; font-size: 1rem; }
+.btn-lg { padding: 18px 36px; font-size: 1.2rem; }
 .btn-full { width: 100%; display: block; text-align: center; }
 
 /* ========== PROGRESS BAR ========== */
@@ -175,9 +176,9 @@ nav {
 }
 .subject-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(107,79,53,0.15); text-decoration: none; }
 .subject-card-emoji { font-size: 2.5rem; }
-.subject-card-name { font-weight: 800; font-size: 1rem; color: var(--brown); }
-.subject-card-char { font-size: 0.85rem; color: var(--brown-light); }
-.subject-card-xp { font-size: 0.8rem; color: var(--gold); font-weight: 700; }
+.subject-card-name { font-weight: 800; font-size: 1.1rem; color: var(--brown); }
+.subject-card-char { font-size: 0.95rem; color: var(--brown-light); }
+.subject-card-xp { font-size: 0.9rem; color: var(--gold); font-weight: 700; }
 
 /* ========== GRID ========== */
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
@@ -649,20 +650,20 @@ nav {
 .loading-text { color: var(--brown-light); font-style: italic; padding: 20px; }
 
 /* Test */
-.test-container { max-width: 680px; margin: 40px auto; padding: 0 20px; }
+.test-container { max-width: 720px; margin: 40px auto; padding: 0 20px; }
 .test-header { margin-bottom: 28px; }
-.phase-label { font-weight: 800; color: var(--peach); font-size: 1rem; margin-bottom: 12px; }
-.progress-text { font-size: 0.85rem; color: var(--brown-light); margin-top: 8px; text-align: right; }
-.question-card { background: white; border: 1.5px solid var(--warm); border-radius: 20px; padding: 32px; box-shadow: 0 4px 20px rgba(107,79,53,0.1); transition: opacity 0.3s; }
-.question-text { font-size: 1.2rem; font-weight: 800; color: var(--brown); margin-bottom: 24px; line-height: 1.4; }
-.answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.answer-btn { background: var(--beige); border: 2px solid var(--warm); border-radius: 12px; padding: 14px 16px; font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--brown); cursor: pointer; text-align: left; transition: all 0.2s; }
+.phase-label { font-weight: 800; color: var(--peach); font-size: 1.1rem; margin-bottom: 12px; }
+.progress-text { font-size: 1rem; color: var(--brown-light); margin-top: 8px; text-align: right; }
+.question-card { background: white; border: 1.5px solid var(--warm); border-radius: 20px; padding: 36px; box-shadow: 0 4px 20px rgba(107,79,53,0.1); transition: opacity 0.3s; }
+.question-text { font-size: 1.45rem; font-weight: 800; color: var(--brown); margin-bottom: 28px; line-height: 1.45; }
+.answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.answer-btn { background: var(--beige); border: 2px solid var(--warm); border-radius: 14px; padding: 18px 20px; font-family: 'Nunito', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--brown); cursor: pointer; text-align: left; transition: all 0.2s; line-height: 1.4; }
 .answer-btn:hover:not(:disabled) { border-color: var(--peach); background: #fff8f4; transform: translateY(-2px); }
 .answer-btn.selected { border-color: var(--sky); background: #f0f8fc; }
 .answer-btn.correct { border-color: var(--sage); background: #f0faf4; color: var(--sage); }
 .answer-btn.wrong { border-color: var(--red, #d95f4b); background: #fef0ee; color: #d95f4b; }
 .answer-btn:disabled { cursor: not-allowed; opacity: 0.85; }
-@media (max-width: 480px) { .answers-grid { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .answers-grid { grid-template-columns: 1fr; } }
 
 /* Result page */
 .result-card { background: white; border: 1.5px solid var(--warm); border-radius: 20px; padding: 24px; text-align: center; margin-bottom: 20px; }
@@ -693,17 +694,17 @@ nav {
 .back-link:hover { text-decoration: underline; }
 
 /* Topic row */
-.topic-row { background: white; border: 1.5px solid var(--warm); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; transition: all 0.2s; }
+.topic-row { background: white; border: 1.5px solid var(--warm); border-radius: 14px; padding: 18px 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 12px; transition: all 0.2s; }
 .topic-row:hover { border-color: var(--peach); }
 .topic-done { border-color: var(--sage); background: #f5fdf7; }
 .topic-locked { opacity: 0.55; }
 .topic-status { font-size: 1.3rem; min-width: 28px; }
 .topic-info { flex: 1; }
-.topic-title { font-weight: 800; color: var(--brown); margin-bottom: 4px; }
-.topic-meta { display: flex; align-items: center; gap: 12px; font-size: 0.85rem; }
+.topic-title { font-weight: 800; font-size: 1.1rem; color: var(--brown); margin-bottom: 4px; }
+.topic-meta { display: flex; align-items: center; gap: 12px; font-size: 0.95rem; }
 .topic-xp { color: var(--gold); font-weight: 700; }
-.topic-locked-label { font-size: 0.8rem; color: var(--brown-light); font-weight: 700; white-space: nowrap; }
-.btn-sm { padding: 8px 16px; font-size: 0.85rem; border-radius: 8px; }
+.topic-locked-label { font-size: 0.9rem; color: var(--brown-light); font-weight: 700; white-space: nowrap; }
+.btn-sm { padding: 10px 18px; font-size: 1rem; border-radius: 10px; }
 
 /* Topic page layout */
 .topic-layout { display: grid; grid-template-columns: 1fr 360px; gap: 28px; padding: 24px 0; }
@@ -716,7 +717,7 @@ nav {
 .chat-char-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--warm); }
 .chat-messages { flex: 1; overflow-y: auto; max-height: 300px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
 .chat-input-row { display: flex; gap: 8px; }
-.chat-input { flex: 1; border: 1.5px solid var(--warm); border-radius: 8px; padding: 10px 14px; font-family: 'Nunito', sans-serif; font-size: 0.9rem; background: var(--cream); color: var(--brown); }
+.chat-input { flex: 1; border: 1.5px solid var(--warm); border-radius: 10px; padding: 12px 16px; font-family: 'Nunito', sans-serif; font-size: 1.05rem; background: var(--cream); color: var(--brown); }
 .chat-input:focus { outline: none; border-color: var(--peach); }
 @media (max-width: 768px) { .topic-layout { grid-template-columns: 1fr; } }
 
@@ -728,28 +729,28 @@ nav {
 /* Exercises */
 .exercises-section { padding: 32px 0; }
 .ex-tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--warm); padding-bottom: 4px; }
-.ex-tab { background: none; border: none; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--brown-light); cursor: pointer; padding: 8px 16px; border-radius: 8px 8px 0 0; transition: all 0.2s; }
+.ex-tab { background: none; border: none; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--brown-light); cursor: pointer; padding: 10px 20px; border-radius: 8px 8px 0 0; transition: all 0.2s; }
 .ex-tab.active { color: var(--peach); border-bottom: 3px solid var(--peach); background: var(--beige); }
 .ex-panel { display: none; }
 .ex-panel.active { display: block; }
-.mcq-question { margin-bottom: 28px; }
-.mcq-text { font-weight: 800; margin-bottom: 12px; color: var(--brown); }
-.mcq-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mcq-question { margin-bottom: 32px; }
+.mcq-text { font-weight: 800; font-size: 1.15rem; margin-bottom: 14px; color: var(--brown); line-height: 1.4; }
+.mcq-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .ex-completion { background: linear-gradient(135deg, var(--sage), #4a9a6a); border-radius: 20px; margin-top: 24px; }
 .ex-completion h3 { color: white; }
 .ex-completion p { color: rgba(255,255,255,0.85); }
 
 /* Fill blank */
-.fill-item { background: white; border: 1.5px solid var(--warm); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
-.fill-sentence { font-size: 1.05rem; font-weight: 600; color: var(--brown); margin-bottom: 12px; line-height: 1.8; }
-.fill-input { border: none; border-bottom: 2px solid var(--peach); background: transparent; font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 700; color: var(--brown); padding: 4px 8px; min-width: 80px; }
+.fill-item { background: white; border: 1.5px solid var(--warm); border-radius: 14px; padding: 22px; margin-bottom: 16px; }
+.fill-sentence { font-size: 1.15rem; font-weight: 600; color: var(--brown); margin-bottom: 14px; line-height: 1.9; }
+.fill-input { border: none; border-bottom: 2px solid var(--peach); background: transparent; font-family: 'Nunito', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--brown); padding: 4px 8px; min-width: 90px; }
 .fill-input:focus { outline: none; }
-.fill-hint { font-size: 0.9rem; color: var(--peach); margin-top: 8px; }
+.fill-hint { font-size: 1rem; color: var(--peach); margin-top: 10px; }
 
 /* Match */
 .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .match-col { display: flex; flex-direction: column; gap: 8px; }
-.match-item { background: var(--beige); border: 2px solid var(--warm); border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; user-select: none; }
+.match-item { background: var(--beige); border: 2px solid var(--warm); border-radius: 12px; padding: 14px 18px; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: all 0.2s; user-select: none; }
 .match-item:hover { border-color: var(--peach); }
 .match-item.selected { border-color: var(--sky); background: #f0f8fc; }
 .match-item.matched { border-color: var(--sage); background: #f0faf4; color: var(--sage); cursor: default; }
