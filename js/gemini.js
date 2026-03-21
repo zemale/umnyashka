@@ -1,7 +1,12 @@
 // ========== GEMINI API INTEGRATION ==========
+// API key loaded from config.js (not in git!)
+// If config.js missing or key invalid → smart offline mode
 
-const GEMINI_KEY = 'AIzaSyBHLrG7bIUlU9h1AYLcyUbAuReM_YGJyY0';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+const GEMINI_KEY = (typeof GEMINI_API_KEY !== 'undefined' && GEMINI_API_KEY !== 'REPLACE_WITH_NEW_KEY')
+  ? GEMINI_API_KEY : null;
+const GEMINI_URL = GEMINI_KEY
+  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`
+  : null;
 
 const SYSTEM_PROMPTS = {
   math: `Ты — Макс, весёлый и терпеливый помощник по математике для школьников 5–9 классов.
@@ -83,9 +88,40 @@ const CHAR_TIPS = {
   english: ["Every day is a chance to learn! 🌟", "Mistakes? That's how we learn! 😄", "Reading English = learning English naturally 📖"]
 };
 
+// ========== SMART OFFLINE MODE ==========
+// Used when API key is missing/invalid
+
+const OFFLINE_RESPONSES = {
+  math:    ["Давай разберём это пошагово 🔢 Что ты уже знаешь по этой теме? Начни с самого простого.", "Хороший вопрос! Попробуй сначала записать условие задачи. Что дано, а что нужно найти?", "В математике главное — понять смысл, а не просто выучить формулу. Скажи, что именно непонятно?", "Отлично! Помни: любую сложную задачу можно разбить на простые шаги 💪", "Подсказка: проверь, правильно ли ты применяешь формулу. Подставь числа и посмотри что получается."],
+  algebra: ["Алгебра — это как загадка с буквами 🔡 Что у тебя за уравнение? Покажи, с чего начал.", "Помни: что делаешь с одной стороной уравнения — делай и с другой. Это закон весов ⚖️", "Молодец что спрашиваешь! Первый шаг — раскрой скобки, если они есть. Получилось?", "Попробуй перенести все x в одну сторону, числа — в другую. Что выходит?", "Проверь ответ: подставь найденное x обратно в уравнение. Верно сходится?"],
+  geo:     ["Геометрия — это визуально! Нарисуй фигуру, и решение станет очевиднее ✏️", "Хороший вопрос! Какие данные у тебя есть? Стороны, углы, площадь?", "Помни теорему Пифагора: a²+b²=c² для прямоугольного треугольника 📐", "Попробуй найти похожие треугольники или прямые углы — это часто ключ к решению.", "Запиши формулу площади или периметра для этой фигуры. Какие данные подставишь?"],
+  russian: ["Русский язык — это система правил 📝 Какое именно правило вызывает вопрос?", "Чтобы проверить написание, найди однокоренное слово или измени форму. Попробуй!", "Запомни: каждая часть речи отвечает на свой вопрос. Задай вопрос к слову — и поймёшь.", "Прочитай предложение вслух — часто слух помогает расставить знаки правильно 🎵", "Разбери слово по составу: корень, суффикс, окончание. От этого зависит правописание."],
+  lit:     ["Литература — это разговор через время 📚 Что ты чувствуешь, читая этот текст?", "Спроси себя: зачем автор ввёл этого героя? Что он символизирует?", "Обрати внимание на детали — в хорошей литературе ничего не случайно ✨", "Что движет главным героем? Какова его цель и что ей мешает?", "Попробуй найти в тексте кульминацию — момент наивысшего напряжения. Нашёл?"],
+  history: ["История — это живые люди, а не сухие даты! 🏛️ Что тебя интересует в этом событии?", "Подумай: какова была причина этого события? Что произошло бы, если бы всё пошло иначе?", "Интересный вопрос! Посмотри на контекст: что происходило в мире в это время?", "За каждым историческим фактом — судьбы людей. Кто принимал решения и почему?", "Помни формулу: причина → событие → следствие. Разложи своё событие по этой схеме."],
+  social:  ["Обществознание — это про нашу жизнь! 🌍 Как этот термин связан с тем, что ты видишь вокруг?", "Хороший вопрос! Попробуй дать определение своими словами, а потом сравним с учебником.", "Посмотри на новости — там часто встречаются темы из обществознания в реальности.", "Права и обязанности — две стороны одной медали. К чему твой вопрос относится?", "Общество — сложная система. Какой элемент этой системы тебя интересует?"],
+  physics: ["Физика объясняет мир вокруг нас! ⚡ Какое явление тебя интересует?", "Сначала пойми физический смысл, потом формулу. Что происходит с телом в этой задаче?", "Нарисуй схему: тело, силы, направления. Это сразу упрощает задачу!", "Проверь единицы измерения — это первый признак правильного решения ✅", "Подсказка: запиши все данные и что нужно найти. Какая формула связывает эти величины?"],
+  chem:    ["Химия — это магия с объяснением! 🧪 Что именно непонятно?", "Посмотри в таблицу Менделеева — там много подсказок о свойствах элемента.", "Реакция — это не случайность. Подумай: что происходит с атомами и молекулами?", "Расставь коэффициенты в уравнении реакции — атомы должны сохраняться! ⚗️", "Химия вокруг нас: ржавчина, огонь, вода — всё это реакции. Какую изучаем?"],
+  bio:     ["Биология — это наука о жизни, включая тебя самого! 🌿 Что хочешь узнать?", "Живые организмы удивительны. Какой уровень организации тебя интересует — клетка, орган, организм?", "Попробуй связать теорию с реальностью: как это работает у человека или животного?", "Эволюция объясняет почему живое именно такое. Думал об этом в связи с темой?", "Клетка — строительный кирпичик жизни. Какая её функция сейчас на вопросе?"],
+  geogr:   ["География — это весь наш мир! 🗺️ О каком месте или явлении вопрос?", "Представь, что ты путешественник. Что бы ты увидел там, куда задан вопрос?", "Климат, рельеф, воды — всё взаимосвязано. Какой компонент природы рассматриваем?", "Посмотри на карту мысленно. Где расположен объект, что его окружает?", "Интересный факт: каждый географический объект имеет свою историю. Что знаешь об этом?"],
+  english: ["Great question! 😊 Let's think about it step by step. What do you already know about this topic?", "Don't worry about mistakes — they help us learn! Try to answer in English, even a little bit 🌟", "Remember: context is key! Look at the sentence around the word — what meaning makes sense?", "Tip: try to think in English, not translate from Russian. What word comes to mind first?", "Excellent! Practice makes perfect. Can you make a sentence using this grammar rule?"]
+};
+
+function getOfflineResponse(subjectId, userMessage, topicContext) {
+  const responses = OFFLINE_RESPONSES[subjectId] || OFFLINE_RESPONSES.math;
+  // Pick response based on message length/content for variety
+  const idx = (userMessage.length + userMessage.charCodeAt(0)) % responses.length;
+  let reply = responses[idx];
+  // Add topic reference if we have it
+  if (topicContext && Math.random() > 0.5) {
+    reply += ` Кстати, мы сейчас изучаем «${topicContext.title}» — этот вопрос связан с темой?`;
+  }
+  return reply;
+}
+
 // ========== CORE API CALL ==========
 
 async function callGemini(systemPrompt, contents, retries = 2) {
+  if (!GEMINI_URL) throw new Error('NO_KEY');
   const body = {
     system_instruction: { parts: [{ text: systemPrompt }] },
     contents,
@@ -169,14 +205,17 @@ function getCharTip(subjectId) {
 
 // ========== FRIENDLY ERROR MESSAGES ==========
 
-function getFriendlyError(err) {
+function getFriendlyError(err, subjectId, userMessage, topicContext) {
   const msg = err?.message || '';
-  if (msg === 'SAFETY') return 'Хм, давай переформулируем вопрос — я не смогла ответить на эту формулировку 😅';
-  if (msg.includes('429') || msg.includes('quota')) return 'Слишком много вопросов за раз! Подожди секунду и попробуй снова ⏳';
-  if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('network')) return 'Нет интернета? Проверь соединение и попробуй ещё раз 📶';
-  if (msg.includes('503') || msg.includes('502')) return 'Сервер Gemini немного занят — попробуй через пару секунд 🔄';
-  if (msg.includes('400')) return 'Что-то не то с вопросом — попробуй написать по-другому ✏️';
-  return 'Не получилось получить ответ — попробуй ещё раз! 🔄';
+  // No key — use offline mode silently
+  if (msg === 'NO_KEY' || msg.includes('403') || msg.includes('API key')) {
+    return getOfflineResponse(subjectId || 'math', userMessage || '', topicContext);
+  }
+  if (msg === 'SAFETY') return 'Хм, давай переформулируем вопрос 😅';
+  if (msg.includes('429') || msg.includes('quota')) return 'Слишком много запросов — подожди секунду ⏳';
+  if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) return getOfflineResponse(subjectId || 'math', userMessage || '', topicContext);
+  if (msg.includes('503') || msg.includes('502')) return 'Сервер занят — попробуй ещё раз 🔄';
+  return getOfflineResponse(subjectId || 'math', userMessage || '', topicContext);
 }
 
 // ========== CHAT UI ==========
@@ -254,13 +293,13 @@ function initChat(subjectId, topicContext = null) {
     setSending(true);
     const typing = showTyping();
     try {
-      const historyForApi = history.slice(0, -1); // exclude the message we just added
+      const historyForApi = history.slice(0, -1);
       const reply = await askCharacter(subjectId, text, historyForApi, topicContext);
       removeTyping();
       appendMessage('char', reply);
     } catch (e) {
       removeTyping();
-      appendMessage('char', getFriendlyError(e));
+      appendMessage('char', getFriendlyError(e, subjectId, text, topicContext));
     } finally {
       setSending(false);
       inputEl.focus();

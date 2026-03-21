@@ -71,6 +71,7 @@
 
   <script src="js/app.js"></script>
   <script src="js/ui.js"></script>
+  <script src="config.js" onerror="console.log('config.js not found, using offline mode')"></script>
   <script src="js/gemini.js"></script>
   <script>
     const params = new URLSearchParams(location.search);
@@ -137,13 +138,9 @@
       const ex = exercises[exKey] || exercises[exKey2] || null;
       document.getElementById('exercises-section').style.display = 'block';
       if (ex) {
-        // Support both field name variants
-        const mcqData   = ex.mcq      || [];
-        const fillData  = ex.fill     || ex.fillblank || [];
-        const matchData = ex.match    || [];
-        renderMCQ(mcqData);
-        renderFill(fillData);
-        renderMatch(matchData);
+        renderMCQ(ex.mcq   || []);
+        renderFill(ex.fill  || []);
+        renderMatch(ex.match || []);
       } else {
         const msg = '<p style="color:var(--text3);text-align:center;padding:20px">Упражнений пока нет — скоро добавим! 😊</p>';
         document.getElementById('ex-mcq').innerHTML = msg;
@@ -169,8 +166,7 @@
       let answered = 0;
 
       panel.innerHTML = questions.map((q, qi) => {
-        // Support both q.q and q.question field names
-        const qText = q.q || q.question || '';
+        const qText = q.q || q.question || '???';
         return `
           <div class="ex-item" id="mcq-q${qi}">
             <div class="ex-text">${qi+1}. ${qText}</div>
@@ -210,8 +206,7 @@
       if (!items.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text3)">Нет упражнений</p>'; return; }
 
       panel.innerHTML = items.map((item, i) => {
-        // Support both item.sentence and item.q field names
-        const sentence = item.sentence || item.q || '';
+        const sentence = item.q || item.sentence || '';
         const parts = sentence.split('___');
         const ans = (item.answer || '').replace(/'/g, "\\'");
         const hint = (item.hint || 'Подумай ещё!').replace(/'/g, "\\'");
@@ -255,18 +250,8 @@
 
     function renderMatch(rawPairs) {
       const panel = document.getElementById('ex-match');
-
-      // Normalise: support {left,right} array OR {pairs:[[a,b],...]} format
-      let pairs = [];
-      if (Array.isArray(rawPairs)) {
-        rawPairs.forEach(p => {
-          if (p.pairs && Array.isArray(p.pairs)) {
-            p.pairs.forEach(([l, r]) => pairs.push({left: l, right: r}));
-          } else if (p.left !== undefined) {
-            pairs.push({left: p.left, right: p.right});
-          }
-        });
-      }
+      // Already normalised to [{left, right}]
+      let pairs = (rawPairs || []).filter(p => p.left && p.right);
 
       if (!pairs.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text3)">Нет упражнений</p>'; return; }
 
