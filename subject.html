@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Предмет — УмНяшка 🧠</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
+      <button class="nav-hamburger">☰</button>
+      <div class="nav-links">
+        <a href="subjects.html">Предметы</a>
+        <a href="test.html">Диагностика</a>
+        <a href="profile.html">Профиль</a>
+        <span id="nav-xp" class="nav-badge">⭐ 0 XP</span>
+        <span id="nav-streak" class="nav-badge">🔥 0</span>
+      </div>
+    </div>
+  </nav>
+
+  <div id="subject-header" class="subject-header-banner">
+    Загрузка...
+  </div>
+
+  <div class="container" style="padding-top:24px">
+    <a href="subjects.html" class="back-link">← Все предметы</a>
+    <div id="topics-list" style="margin-top:20px">
+      <div class="loading-text">Загружаем темы...</div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const subjectId = params.get('id') || 'math';
+    const grade = parseInt(params.get('grade') || getGrade());
+
+    Promise.all([
+      fetch('data/subjects.json').then(r => r.json()),
+      fetch('data/topics.json').then(r => r.json())
+    ]).then(([subjects, topics]) => {
+      const subj = subjects.find(s => s.id === subjectId) || subjects[0];
+      document.title = subj.name + ' — УмНяшка 🧠';
+
+      // Header
+      document.getElementById('subject-header').innerHTML = `
+        <div class="subject-banner-inner" style="background:linear-gradient(135deg,${subj.color},${subj.color}cc)">
+          <div class="subject-banner-emoji">${subj.emoji}</div>
+          <div>
+            <h1 style="color:white;margin:0;font-size:1.8rem">${subj.name}</h1>
+            <div style="color:rgba(255,255,255,0.85);font-size:1rem;margin-top:4px">Привет! Я ${subj.char} 👋 Готов учиться? Выбери тему!</div>
+          </div>
+        </div>
+      `;
+
+      const gradeTopics = (topics[subjectId] && topics[subjectId][grade]) || [];
+
+      if (gradeTopics.length === 0) {
+        document.getElementById('topics-list').innerHTML = `
+          <div style="text-align:center;padding:40px;color:var(--brown)">
+            <div style="font-size:3rem">📭</div>
+            <h3>Темы для ${grade} класса скоро появятся!</h3>
+            <a href="subjects.html" class="btn btn-primary" style="margin-top:16px">Выбрать другой предмет</a>
+          </div>`;
+        return;
+      }
+
+      const listHtml = gradeTopics.map((topic, idx) => {
+        const done = isTopicDone(subjectId, grade, topic.id);
+        const prevDone = idx === 0 || isTopicDone(subjectId, grade, gradeTopics[idx-1].id);
+        const locked = !prevDone && !done;
+
+        return `
+          <div class="topic-row ${done ? 'topic-done' : ''} ${locked ? 'topic-locked' : ''}">
+            <div class="topic-status">${done ? '✅' : locked ? '🔒' : '📖'}</div>
+            <div class="topic-info">
+              <div class="topic-title">${topic.title}</div>
+              <div class="topic-meta">
+                ${renderStars(topic.difficulty || 1)}
+                <span class="topic-xp">+${topic.xp || 20} XP</span>
+              </div>
+            </div>
+            ${locked
+              ? '<span class="topic-locked-label">Заблокировано</span>'
+              : `<a href="topic.html?subject=${subjectId}&grade=${grade}&topic=${topic.id}" class="btn btn-sm ${done ? 'btn-secondary' : 'btn-primary'}">${done ? 'Повторить' : 'Учить →'}</a>`
+            }
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('topics-list').innerHTML = listHtml;
+    });
+  </script>
+</body>
+</html>

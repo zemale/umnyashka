@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Профиль — УмНяшка 🧠</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
+      <button class="nav-hamburger">☰</button>
+      <div class="nav-links">
+        <a href="subjects.html">Предметы</a>
+        <a href="test.html">Диагностика</a>
+        <a href="profile.html">Профиль</a>
+        <span id="nav-xp" class="nav-badge">⭐ 0 XP</span>
+        <span id="nav-streak" class="nav-badge">🔥 0</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" style="padding-top:30px;max-width:900px">
+    <!-- Avatar & Nickname -->
+    <div class="profile-header">
+      <div id="avatar-display" class="profile-avatar-big">🦊</div>
+      <div class="profile-info">
+        <input type="text" id="nickname-input" class="nickname-input" placeholder="Твой ник" maxlength="20">
+        <div id="level-label" class="level-label">Новичок</div>
+        <div class="level-bar-wrap">
+          <div class="level-bar-fill" id="level-bar"></div>
+        </div>
+        <div id="level-progress-text" style="font-size:0.8rem;color:var(--brown);margin-top:4px"></div>
+      </div>
+    </div>
+
+    <!-- Avatar Picker -->
+    <div class="section-card">
+      <h3 style="color:var(--brown);margin-bottom:12px">Выбери аватар</h3>
+      <div class="avatar-grid" id="avatar-grid">
+        🦊 🐼 🦁 🐯 🦋 🦄 🐬 🦅 🐙 🌟 💎 🚀 🎨 🎮 🎵 📚 🏆 🌈 ⚡ 🔮
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="stat-xp">0</div>
+        <div class="stat-label">Всего XP ⭐</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-streak">0</div>
+        <div class="stat-label">Серия дней 🔥</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-topics">0</div>
+        <div class="stat-label">Тем пройдено 📖</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-badges">0</div>
+        <div class="stat-label">Значков 🏅</div>
+      </div>
+    </div>
+
+    <!-- Activity -->
+    <div class="section-card">
+      <h3 style="color:var(--brown);margin-bottom:12px">Активность (14 дней)</h3>
+      <div class="activity-dots" id="activity-dots"></div>
+    </div>
+
+    <!-- Subject Progress -->
+    <div class="section-card">
+      <h3 style="color:var(--brown);margin-bottom:16px">Прогресс по предметам</h3>
+      <div id="subject-progress">Загрузка...</div>
+    </div>
+
+    <!-- Badges -->
+    <div class="section-card">
+      <h3 style="color:var(--brown);margin-bottom:16px">Значки</h3>
+      <div class="badges-grid" id="badges-grid">Загрузка...</div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    const AVATARS = ['🦊','🐼','🦁','🐯','🦋','🦄','🐬','🦅','🐙','🌟','💎','🚀','🎨','🎮','🎵','📚','🏆','🌈','⚡','🔮'];
+
+    function initProfile() {
+      const profile = getProfile();
+
+      // Avatar display & picker
+      document.getElementById('avatar-display').textContent = profile.avatar || '🦊';
+      const grid = document.getElementById('avatar-grid');
+      grid.innerHTML = AVATARS.map(a => `<button class="avatar-btn ${a === profile.avatar ? 'selected' : ''}" onclick="selectAvatar('${a}')">${a}</button>`).join('');
+
+      // Nickname
+      const nicknameInput = document.getElementById('nickname-input');
+      nicknameInput.value = profile.nickname || '';
+      nicknameInput.addEventListener('input', () => {
+        const p = getProfile();
+        p.nickname = nicknameInput.value;
+        setProfile(p);
+      });
+
+      // XP & level
+      const xp = getXP();
+      const lvl = getLevel(xp);
+      const prog = getLevelProgress(xp);
+      document.getElementById('level-label').textContent = lvl.name;
+      document.getElementById('level-bar').style.width = prog.pct + '%';
+      document.getElementById('level-progress-text').textContent = prog.max === Infinity
+        ? `${xp} XP — максимальный уровень!`
+        : `${prog.current} / ${prog.total} XP до «${prog.next}»`;
+
+      // Stats
+      document.getElementById('stat-xp').textContent = xp;
+      document.getElementById('stat-streak').textContent = getStreak();
+      const topicsObj = get('topics', {});
+      document.getElementById('stat-topics').textContent = Object.keys(topicsObj).length;
+      const badges = getBadges();
+      document.getElementById('stat-badges').textContent = badges.length;
+
+      // Activity dots
+      const activeDates = get('active_dates', []);
+      const dots = document.getElementById('activity-dots');
+      const today = new Date();
+      dots.innerHTML = Array.from({length: 14}, (_, i) => {
+        const d = new Date(today);
+        d.setDate(d.getDate() - (13 - i));
+        const key = d.toISOString().split('T')[0];
+        const active = activeDates.includes(key);
+        const label = d.toLocaleDateString('ru', {month:'short', day:'numeric'});
+        return `<div class="activity-dot ${active ? 'active' : ''}" title="${label}"></div>`;
+      }).join('');
+
+      // Subject progress
+      Promise.all([
+        fetch('data/subjects.json').then(r => r.json()),
+        fetch('data/topics.json').then(r => r.json())
+      ]).then(([subjects, topics]) => {
+        const grade = getGrade();
+        document.getElementById('subject-progress').innerHTML = subjects.map(s => {
+          const gradeTopics = (topics[s.id] && topics[s.id][grade]) || [];
+          const total = gradeTopics.length;
+          const prog = getProgress(s.id, grade, total);
+          return `
+            <div style="margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span style="font-weight:700">${s.emoji} ${s.name}</span>
+                <span style="color:var(--brown);font-size:0.9rem">${prog.done}/${prog.total}</span>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" style="width:${prog.pct}%;background:${s.color}"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      });
+
+      // Badges
+      fetch('data/badges.json')
+        .then(r => r.json())
+        .then(allBadges => {
+          const earned = getBadges();
+          document.getElementById('badges-grid').innerHTML = allBadges.map(b => {
+            const isEarned = earned.includes(b.id);
+            return `
+              <div class="badge-card ${isEarned ? 'earned' : 'locked'}" title="${b.desc}">
+                <div class="badge-card-emoji">${isEarned ? b.emoji : '🔒'}</div>
+                <div class="badge-card-name">${b.name}</div>
+                ${isEarned ? `<div class="badge-card-xp">+${b.xp_bonus} XP</div>` : ''}
+              </div>
+            `;
+          }).join('');
+        })
+        .catch(() => {
+          document.getElementById('badges-grid').innerHTML = '<p style="color:var(--brown)">Не удалось загрузить значки</p>';
+        });
+    }
+
+    window.selectAvatar = function(emoji) {
+      document.getElementById('avatar-display').textContent = emoji;
+      document.querySelectorAll('.avatar-btn').forEach(b => b.classList.remove('selected'));
+      event.target.classList.add('selected');
+      const p = getProfile();
+      p.avatar = emoji;
+      setProfile(p);
+    };
+
+    initProfile();
+  </script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Диагностика — УмНяшка 🧠</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
+      <button class="nav-hamburger">☰</button>
+      <div class="nav-links">
+        <a href="subjects.html">Предметы</a>
+        <a href="test.html">Диагностика</a>
+        <a href="profile.html">Профиль</a>
+        <span id="nav-xp" class="nav-badge">⭐ 0 XP</span>
+        <span id="nav-streak" class="nav-badge">🔥 0</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="test-container">
+    <div class="test-header">
+      <div class="phase-label" id="phase-label">Фаза 1 из 3: Твой стиль</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-text" id="progress-text">Вопрос 1 из 30</div>
+    </div>
+
+    <div class="question-card" id="question-card">
+      <div class="question-text" id="question-text">Загрузка...</div>
+      <div class="answers-grid" id="answers-grid"></div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    const PHASE1_QUESTIONS = [
+      { id: 'learn_style', text: 'Как тебе лучше всего учиться?', answers: ['Решать задачи и примеры 🔧', 'Читать учебник и конспекты 📖', 'Смотреть видео и схемы 🎥', 'Объяснять другим 🗣️'], values: ['practice','reader','visual','teacher'] },
+      { id: 'fav_subject', text: 'Какой предмет тебе нравится больше всего?', answers: ['Математика / Алгебра 🔢', 'Русский / Литература ✍️', 'История / Обществознание 🏛', 'Биология / Химия / Физика 🔬', 'Английский 🇬🇧', 'География 🗺'], values: ['math','russian','history','bio','english','geogr'] },
+      { id: 'weak_subject', text: 'Какой предмет даётся тебе сложнее всего?', answers: ['Математика / Алгебра 🔢', 'Русский / Литература ✍️', 'История / Обществознание 🏛', 'Биология / Химия / Физика 🔬', 'Английский 🇬🇧', 'География 🗺'], values: ['math','russian','history','bio','english','geogr'] },
+      { id: 'study_time', text: 'Сколько времени ты обычно тратишь на учёбу дома?', answers: ['Меньше часа ⚡', '1-2 часа 📚', '2-3 часа 💪', 'Больше 3 часов 🔥'], values: ['low','medium','high','very_high'] },
+      { id: 'when_study', text: 'Когда тебе лучше всего учиться?', answers: ['Утром ☀️', 'Днём 🌤', 'Вечером 🌙', 'Ночью 🌟'], values: ['morning','day','evening','night'] },
+      { id: 'mistakes', text: 'Как ты реагируешь на ошибки?', answers: ['Расстраиваюсь, но продолжаю 😤', 'Спокойно анализирую 🧐', 'Прошу помощи 🙋', 'Бросаю на время 😮‍💨'], values: ['resilient','analytical','social','avoider'] },
+      { id: 'help', text: 'Как ты обычно решаешь трудные задания?', answers: ['Думаю сам долго 🤔', 'Ищу в интернете 🔍', 'Спрашиваю учителя или родителей 👨‍🏫', 'Работаю с другом 👫'], values: ['independent','internet','teacher','friend'] },
+      { id: 'goal', text: 'Зачем ты хочешь учиться лучше?', answers: ['Хочу хорошие оценки 📊', 'Готовлюсь к ОГЭ/ЕГЭ 🎓', 'Просто интересно 🌟', 'Чтобы помогать другим 💙'], values: ['grades','exam','curiosity','helping'] },
+      { id: 'distract', text: 'Что тебя чаще всего отвлекает от учёбы?', answers: ['Телефон / соцсети 📱', 'Игры 🎮', 'Друзья и семья 👨‍👩‍👧', 'Просто лень 😴'], values: ['phone','games','social','lazy'] },
+      { id: 'proud', text: 'Чем ты больше всего гордишься в учёбе?', answers: ['Умею решать сложные задачи 🧩', 'Пишу хорошие сочинения ✍️', 'Хорошо запоминаю факты 🧠', 'Умею объяснить другим 💬'], values: ['problem','writing','memory','teaching'] }
+    ];
+
+    const CONTENT_QUESTIONS = {
+      math: [
+        { text: 'Чему равно 2² + 3²?', answers: ['10', '13', '25', '12'], correct: 1 },
+        { text: 'Сколько будет 15% от 200?', answers: ['20', '25', '30', '35'], correct: 2 },
+        { text: 'Площадь прямоугольника со сторонами 4 и 7?', answers: ['22', '28', '11', '14'], correct: 1 },
+        { text: 'Реши: 3x = 15. x = ?', answers: ['3', '5', '12', '45'], correct: 1 },
+        { text: 'Какое число является чётным?', answers: ['7', '11', '14', '19'], correct: 2 },
+        { text: 'Найди НОД(12, 18).', answers: ['3', '4', '6', '9'], correct: 2 },
+        { text: 'Как называется результат деления?', answers: ['Произведение', 'Частное', 'Разность', 'Сумма'], correct: 1 },
+        { text: 'Периметр квадрата со стороной 5?', answers: ['10', '15', '20', '25'], correct: 2 },
+        { text: '(-3) · (-4) = ?', answers: ['-12', '7', '12', '-7'], correct: 2 },
+        { text: 'Какую дробь называют правильной?', answers: ['5/3', '7/4', '3/7', '8/5'], correct: 2 }
+      ],
+      russian: [
+        { text: 'Какая часть речи отвечает на вопрос "кто? что?"?', answers: ['Глагол', 'Прилагательное', 'Существительное', 'Наречие'], correct: 2 },
+        { text: 'Что такое подлежащее?', answers: ['Действие', 'Признак предмета', 'Главный член — о ком говорим', 'Дополнение'], correct: 2 },
+        { text: 'В каком слове пишется "жи-ши" с "и"?', answers: ['жыр', 'жираф', 'широта', 'жюри'], correct: 1 },
+        { text: 'Что такое синоним?', answers: ['Слова противоположные по смыслу', 'Слова одинаковые по смыслу', 'Слова с одним корнем', 'Слова из других языков'], correct: 1 },
+        { text: 'Сколько букв в русском алфавите?', answers: ['30', '32', '33', '35'], correct: 2 },
+        { text: 'Какой знак ставится в конце вопросительного предложения?', answers: ['Точка', 'Восклицательный знак', 'Вопросительный знак', 'Многоточие'], correct: 2 },
+        { text: 'Как называется значимая часть слова перед корнем?', answers: ['Суффикс', 'Приставка', 'Окончание', 'Основа'], correct: 1 },
+        { text: 'Какое существительное женского рода?', answers: ['Стол', 'Дом', 'Книга', 'Шкаф'], correct: 2 },
+        { text: 'Антоним к слову "светлый"?', answers: ['Яркий', 'Белый', 'Тёмный', 'Солнечный'], correct: 2 },
+        { text: 'Что такое диалог?', answers: ['Монолог одного героя', 'Разговор двух и более лиц', 'Описание природы', 'Авторская речь'], correct: 1 }
+      ],
+      history: [
+        { text: 'В каком году произошло Крещение Руси?', answers: ['888', '988', '1088', '788'], correct: 1 },
+        { text: 'Кто основал Москву?', answers: ['Владимир Мономах', 'Иван Грозный', 'Юрий Долгорукий', 'Ярослав Мудрый'], correct: 2 },
+        { text: 'Сколько лет длилась Великая Отечественная война?', answers: ['3 года', '4 года', '5 лет', '6 лет'], correct: 1 },
+        { text: 'Какой документ принял первый российский парламент?', answers: ['Конституцию', 'Манифест об освобождении', 'Свод законов', 'Грамоту'], correct: 0 },
+        { text: 'Как называется наука, изучающая прошлое?', answers: ['Биология', 'История', 'Химия', 'Философия'], correct: 1 },
+        { text: 'В каком веке жил Пётр I?', answers: ['XVI', 'XVII', 'XVIII', 'XIX'], correct: 2 },
+        { text: 'Что такое летопись?', answers: ['Сборник законов', 'Записи о событиях по годам', 'Военная карта', 'Церковная книга'], correct: 1 },
+        { text: 'Когда закончилась Великая Отечественная война?', answers: ['1943', '1944', '1945', '1946'], correct: 2 },
+        { text: 'Кто написал "Слово о полку Игореве"?', answers: ['Пушкин', 'Неизвестный автор', 'Нестор', 'Ломоносов'], correct: 1 },
+        { text: 'Столица Российской империи при Петре I?', answers: ['Москва', 'Киев', 'Санкт-Петербург', 'Новгород'], correct: 2 }
+      ],
+      bio: [
+        { text: 'Из чего состоит клетка?', answers: ['Только ядра', 'Ядра, цитоплазмы и мембраны', 'Только мембраны', 'Хлоропластов'], correct: 1 },
+        { text: 'Как называется процесс поглощения СО₂ растениями?', answers: ['Дыхание', 'Испарение', 'Фотосинтез', 'Транспирация'], correct: 2 },
+        { text: 'Сколько камер в сердце человека?', answers: ['2', '3', '4', '5'], correct: 2 },
+        { text: 'Какой орган отвечает за кровообращение?', answers: ['Лёгкие', 'Печень', 'Почки', 'Сердце'], correct: 3 },
+        { text: 'Что изучает ботаника?', answers: ['Животных', 'Растения', 'Грибы', 'Бактерии'], correct: 1 },
+        { text: 'Какой газ выделяют растения при фотосинтезе?', answers: ['СО₂', 'Азот', 'Кислород', 'Водород'], correct: 2 },
+        { text: 'Как называется наука о грибах?', answers: ['Микология', 'Зоология', 'Экология', 'Генетика'], correct: 0 },
+        { text: 'Чем дышат рыбы?', answers: ['Лёгкими', 'Жабрами', 'Кожей', 'Трахеями'], correct: 1 },
+        { text: 'Как называются клетки, переносящие кислород?', answers: ['Лейкоциты', 'Тромбоциты', 'Эритроциты', 'Нейроны'], correct: 2 },
+        { text: 'Что такое экосистема?', answers: ['Вид животных', 'Совокупность организмов и среды', 'Тип климата', 'Форма рельефа'], correct: 1 }
+      ],
+      english: [
+        { text: 'What is "книга" in English?', answers: ['Pen', 'Book', 'Table', 'Chair'], correct: 1 },
+        { text: 'Translate: "I am a student."', answers: ['Ты ученик', 'Он ученик', 'Я ученик', 'Мы ученики'], correct: 2 },
+        { text: 'What is the plural of "child"?', answers: ['Childs', 'Children', 'Childes', 'Child'], correct: 1 },
+        { text: 'Which article is used with "apple"?', answers: ['a', 'an', 'the', 'no article'], correct: 1 },
+        { text: 'Translate: "Monday"', answers: ['Вторник', 'Среда', 'Понедельник', 'Пятница'], correct: 2 },
+        { text: 'What does "big" mean?', answers: ['Маленький', 'Быстрый', 'Большой', 'Добрый'], correct: 2 },
+        { text: 'Correct sentence:', answers: ['She are nice', 'She is nice', 'She am nice', 'She be nice'], correct: 1 },
+        { text: 'What is the past tense of "go"?', answers: ['Goed', 'Goes', 'Gone', 'Went'], correct: 3 },
+        { text: 'Translate: "How are you?"', answers: ['Как тебя зовут?', 'Где ты живёшь?', 'Как ты?', 'Что ты делаешь?'], correct: 2 },
+        { text: 'What is 3+5 in English?', answers: ['Seven', 'Eight', 'Nine', 'Six'], correct: 1 }
+      ],
+      geogr: [
+        { text: 'Самый большой материк?', answers: ['Африка', 'Австралия', 'Азия', 'Антарктида'], correct: 2 },
+        { text: 'Самая длинная река в мире?', answers: ['Амазонка', 'Нил', 'Янцзы', 'Обь'], correct: 1 },
+        { text: 'Сколько океанов на Земле?', answers: ['3', '4', '5', '6'], correct: 2 },
+        { text: 'Столица Австралии?', answers: ['Сидней', 'Мельбурн', 'Канберра', 'Брисбен'], correct: 2 },
+        { text: 'Какой полюс холоднее?', answers: ['Северный', 'Южный', 'Одинаково', 'Меняется'], correct: 1 },
+        { text: 'Что обозначают горизонтали на карте?', answers: ['Реки', 'Дороги', 'Рельеф', 'Границы'], correct: 2 },
+        { text: 'Самая высокая гора в мире?', answers: ['Эверест', 'К2', 'Эльбрус', 'Монблан'], correct: 0 },
+        { text: 'Какой климатический пояс самый жаркий?', answers: ['Умеренный', 'Субтропический', 'Экваториальный', 'Тропический'], correct: 2 },
+        { text: 'В какой стране самое большое население?', answers: ['Россия', 'США', 'Индия', 'Бразилия'], correct: 2 },
+        { text: 'Какое море омывает Крым?', answers: ['Каспийское', 'Чёрное', 'Азовское', 'Балтийское'], correct: 1 }
+      ]
+    };
+
+    // Default content for subjects without specific questions
+    const DEFAULT_CONTENT = CONTENT_QUESTIONS.math;
+
+    function getContentQuestions(subjectValue) {
+      const map = { math:'math', algebra:'math', geo:'math', russian:'russian', lit:'russian', history:'history', social:'history', physics:'bio', chem:'bio', bio:'bio', geogr:'geogr', english:'english' };
+      return CONTENT_QUESTIONS[map[subjectValue]] || DEFAULT_CONTENT;
+    }
+
+    let currentQ = 0;
+    let answers = {};
+    let favSubject = 'math';
+    let weakSubject = 'russian';
+    let phase2Questions = [];
+    let phase3Questions = [];
+    let allQuestions = [];
+
+    function buildQuestions() {
+      allQuestions = [...PHASE1_QUESTIONS];
+      // Phase 2 & 3 will be filled after fav/weak are known
+    }
+
+    function getPhaseLabel(qIdx) {
+      if (qIdx < 10) return 'Фаза 1 из 3: Твой стиль';
+      if (qIdx < 20) return 'Фаза 2 из 3: Сильный предмет';
+      return 'Фаза 3 из 3: Слабый предмет';
+    }
+
+    function renderQuestion() {
+      const q = allQuestions[currentQ];
+      if (!q) return finish();
+
+      const pct = Math.round(currentQ / 30 * 100);
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-text').textContent = `Вопрос ${currentQ + 1} из 30`;
+      document.getElementById('phase-label').textContent = getPhaseLabel(currentQ);
+
+      const card = document.getElementById('question-card');
+      card.style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('question-text').textContent = q.text;
+        const grid = document.getElementById('answers-grid');
+        grid.innerHTML = (q.answers || q.options || []).map((a, i) => `
+          <button class="answer-btn" onclick="selectAnswer(${i})">${a}</button>
+        `).join('');
+        card.style.opacity = '1';
+      }, 300);
+    }
+
+    function selectAnswer(idx) {
+      const q = allQuestions[currentQ];
+      const ans = (q.answers || q.options || [])[idx];
+
+      // Save answer
+      if (q.id) {
+        answers[q.id] = q.values ? q.values[idx] : idx;
+        if (q.id === 'fav_subject') favSubject = q.values[idx];
+        if (q.id === 'weak_subject') weakSubject = q.values[idx];
+      } else if (q.correct !== undefined) {
+        // Content question — track score
+        const phase = currentQ < 20 ? 'fav_score' : 'weak_score';
+        if (!answers[phase]) answers[phase] = { correct: 0, total: 0 };
+        answers[phase].total++;
+        if (idx === q.correct) answers[phase].correct++;
+      }
+
+      // Highlight
+      const btns = document.querySelectorAll('.answer-btn');
+      btns.forEach(b => b.disabled = true);
+      if (q.correct !== undefined) {
+        btns[idx].classList.add(idx === q.correct ? 'correct' : 'wrong');
+        btns[q.correct].classList.add('correct');
+      } else {
+        btns[idx].classList.add('selected');
+      }
+
+      // After phase 1 Q10 complete, build phase 2 & 3
+      if (currentQ === 9) {
+        phase2Questions = getContentQuestions(favSubject).map((q, i) => ({...q, id: null}));
+        phase3Questions = getContentQuestions(weakSubject).map((q, i) => ({...q, id: null}));
+        allQuestions = [...PHASE1_QUESTIONS, ...phase2Questions, ...phase3Questions];
+      }
+
+      setTimeout(() => {
+        currentQ++;
+        if (currentQ >= 30) {
+          finish();
+        } else {
+          renderQuestion();
+        }
+      }, q.correct !== undefined ? 800 : 400);
+    }
+
+    function finish() {
+      const result = {
+        learn_style: answers.learn_style || 'practice',
+        fav_subject: favSubject,
+        weak_subject: weakSubject,
+        fav_score: answers.fav_score || { correct: 0, total: 10 },
+        weak_score: answers.weak_score || { correct: 0, total: 10 },
+        goal: answers.goal || 'grades',
+        date: new Date().toISOString()
+      };
+      localStorage.setItem('umnyashka_test_result', JSON.stringify(result));
+      window.location.href = 'result.html';
+    }
+
+    buildQuestions();
+    renderQuestion();
+  </script>
+</body>
+</html>

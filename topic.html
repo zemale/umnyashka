@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тема — УмНяшка 🧠</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
+      <button class="nav-hamburger">☰</button>
+      <div class="nav-links">
+        <a href="subjects.html">Предметы</a>
+        <a href="test.html">Диагностика</a>
+        <a href="profile.html">Профиль</a>
+        <span id="nav-xp" class="nav-badge">⭐ 0 XP</span>
+        <span id="nav-streak" class="nav-badge">🔥 0</span>
+      </div>
+    </div>
+  </nav>
+
+  <div id="topic-breadcrumb" class="breadcrumb">Загрузка...</div>
+
+  <div class="topic-layout container">
+    <!-- LEFT: Theory -->
+    <div class="theory-panel" id="theory-panel">
+      <div class="loading-text">Загружаем тему...</div>
+    </div>
+
+    <!-- RIGHT: Chat -->
+    <div class="chat-panel">
+      <div class="chat-char-header" id="chat-char-header">
+        <span id="chat-char-emoji" style="font-size:2rem">🤖</span>
+        <div>
+          <div id="chat-char-name" style="font-weight:800;color:var(--brown)">Персонаж</div>
+          <div style="font-size:0.8rem;color:var(--peach)">спрашивай меня!</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" class="chat-input" placeholder="Задай вопрос...">
+        <button id="chat-send" class="btn btn-primary">→</button>
+      </div>
+      <button id="chat-clear" class="btn btn-sm btn-secondary" style="margin-top:8px;width:100%">Очистить чат</button>
+    </div>
+  </div>
+
+  <!-- Exercises -->
+  <div class="exercises-section container" id="exercises-section" style="display:none">
+    <h2 style="color:var(--brown);margin-bottom:16px">Упражнения</h2>
+    <div class="ex-tabs">
+      <button class="ex-tab active" data-tab="mcq">🎯 Тест</button>
+      <button class="ex-tab" data-tab="fill">✏️ Пропуски</button>
+      <button class="ex-tab" data-tab="match">🔀 Соответствие</button>
+    </div>
+    <div id="ex-mcq" class="ex-panel active"></div>
+    <div id="ex-fill" class="ex-panel"></div>
+    <div id="ex-match" class="ex-panel"></div>
+    <div id="ex-completion" class="ex-completion" style="display:none"></div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/gemini.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const subjectId = params.get('subject') || 'math';
+    const grade = parseInt(params.get('grade') || getGrade());
+    const topicId = params.get('topic') || '';
+
+    let currentTopic = null;
+    let allTopics = [];
+    let currentSubject = null;
+    let exState = { mcq: false, fill: false, match: false };
+
+    Promise.all([
+      fetch('data/topics.json').then(r => r.json()),
+      fetch('data/subjects.json').then(r => r.json()),
+      fetch('data/exercises.json').then(r => r.json()).catch(() => ({}))
+    ]).then(([topics, subjects, exercises]) => {
+      const subj = subjects.find(s => s.id === subjectId) || subjects[0];
+      currentSubject = subj;
+      const gradeTopics = (topics[subjectId] && topics[subjectId][grade]) || [];
+      allTopics = gradeTopics;
+      const topic = gradeTopics.find(t => t.id === topicId) || gradeTopics[0];
+      if (!topic) {
+        document.getElementById('theory-panel').innerHTML = '<p>Тема не найдена</p>';
+        return;
+      }
+      currentTopic = topic;
+      document.title = topic.title + ' — УмНяшка 🧠';
+
+      // Breadcrumb
+      document.getElementById('topic-breadcrumb').innerHTML = `
+        <a href="subjects.html">Предметы</a> → 
+        <a href="subject.html?id=${subjectId}&grade=${grade}">${subj.name}</a> → 
+        ${topic.title}
+      `;
+
+      // Theory
+      document.getElementById('theory-panel').innerHTML = `
+        <h1 style="color:var(--brown);font-size:1.6rem;margin-bottom:16px">${topic.title}</h1>
+        <p style="line-height:1.7;color:#444;margin-bottom:20px">${topic.theory}</p>
+        ${topic.formulas && topic.formulas.length ? `
+          <div class="formula-box">
+            <div style="font-weight:800;color:var(--brown);margin-bottom:8px">📐 Формулы</div>
+            ${topic.formulas.map(f => `<div class="formula-item">${f}</div>`).join('')}
+          </div>
+        ` : ''}
+        ${topic.example ? `
+          <div class="example-box">
+            <div style="font-weight:800;color:var(--sage);margin-bottom:8px">💡 Пример</div>
+            <div style="color:#444;line-height:1.6">${topic.example}</div>
+          </div>
+        ` : ''}
+      `;
+
+      // Chat character
+      document.getElementById('chat-char-emoji').textContent = subj.emoji;
+      document.getElementById('chat-char-name').textContent = subj.char;
+
+      // Init chat
+      initChat(subjectId);
+
+      // Exercises
+      const exKey = `${subjectId}_${grade}_${topicId}`;
+      const ex = exercises[exKey] || exercises[`${subjectId}_${grade}_${topic.id}`];
+      if (ex) {
+        document.getElementById('exercises-section').style.display = 'block';
+        renderMCQ(ex.mcq || []);
+        renderFill(ex.fill || []);
+        renderMatch(ex.match || []);
+      } else {
+        document.getElementById('exercises-section').style.display = 'block';
+        document.getElementById('ex-mcq').innerHTML = '<p style="color:var(--brown);text-align:center;padding:20px">Упражнений пока нет для этой темы 😊 Скоро добавим!</p>';
+        document.getElementById('ex-fill').innerHTML = '<p style="color:var(--brown);text-align:center;padding:20px">Упражнений пока нет для этой темы 😊 Скоро добавим!</p>';
+        document.getElementById('ex-match').innerHTML = '<p style="color:var(--brown);text-align:center;padding:20px">Упражнений пока нет для этой темы 😊 Скоро добавим!</p>';
+      }
+
+      // Tab switching
+      document.querySelectorAll('.ex-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.ex-tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.ex-panel').forEach(p => p.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById('ex-' + tab.dataset.tab).classList.add('active');
+        });
+      });
+    });
+
+    function renderMCQ(questions) {
+      const panel = document.getElementById('ex-mcq');
+      if (!questions.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--brown)">Нет вопросов</p>'; return; }
+      let score = 0;
+      let answered = 0;
+
+      panel.innerHTML = questions.map((q, qi) => `
+        <div class="mcq-question" id="mcq-q${qi}">
+          <div class="mcq-text">${qi+1}. ${q.question}</div>
+          <div class="mcq-answers">
+            ${q.options.map((opt, oi) => `
+              <button class="answer-btn" onclick="mcqAnswer(${qi},${oi},${q.correct},'${panel.id}')">${opt}</button>
+            `).join('')}
+          </div>
+        </div>
+      `).join('') + `<div id="mcq-score" style="display:none;text-align:center;padding:20px;font-weight:800;color:var(--sage)"></div>`;
+
+      window.mcqAnswer = function(qi, selected, correct, panelId) {
+        const qEl = document.getElementById('mcq-q' + qi);
+        const btns = qEl.querySelectorAll('.answer-btn');
+        btns.forEach(b => b.disabled = true);
+        btns[selected].classList.add(selected === correct ? 'correct' : 'wrong');
+        btns[correct].classList.add('correct');
+        if (selected === correct) score++;
+        answered++;
+        if (answered === questions.length) {
+          document.getElementById('mcq-score').style.display = 'block';
+          document.getElementById('mcq-score').textContent = `Результат: ${score}/${questions.length} ✅`;
+          exState.mcq = true;
+          checkCompletion();
+        }
+      };
+    }
+
+    function renderFill(items) {
+      const panel = document.getElementById('ex-fill');
+      if (!items.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--brown)">Нет упражнений</p>'; return; }
+
+      panel.innerHTML = items.map((item, i) => {
+        const parts = item.sentence.split('___');
+        return `
+          <div class="fill-item" id="fill-${i}">
+            <div class="fill-sentence">
+              ${parts[0]}<input type="text" class="fill-input" id="fill-input-${i}" placeholder="..."> ${parts[1] || ''}
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn btn-primary btn-sm" onclick="checkFill(${i},'${item.answer}')">Проверить</button>
+            </div>
+            <div class="fill-hint" id="fill-hint-${i}" style="display:none;color:var(--peach);margin-top:8px">
+              💡 Подсказка: ${item.hint || 'Подумай ещё!'}
+            </div>
+          </div>
+        `;
+      }).join('') + `<div id="fill-done" style="display:none;text-align:center;padding:20px;font-weight:800;color:var(--sage)">Все упражнения выполнены! 🎉</div>`;
+
+      let fillDone = 0;
+      window.checkFill = function(i, answer) {
+        const input = document.getElementById('fill-input-' + i);
+        const val = input.value.trim().toLowerCase();
+        const correct = answer.toLowerCase();
+        if (val === correct || val.includes(correct) || correct.includes(val)) {
+          input.style.borderColor = 'var(--sage)';
+          input.style.background = '#e8f5e9';
+          input.disabled = true;
+          fillDone++;
+          if (fillDone === items.length) {
+            document.getElementById('fill-done').style.display = 'block';
+            exState.fill = true;
+            checkCompletion();
+          }
+        } else {
+          input.style.borderColor = 'var(--peach)';
+          document.getElementById('fill-hint-' + i).style.display = 'block';
+        }
+      };
+    }
+
+    function renderMatch(pairs) {
+      const panel = document.getElementById('ex-match');
+      if (!pairs.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--brown)">Нет упражнений</p>'; return; }
+
+      const shuffledRight = [...pairs].sort(() => Math.random() - 0.5);
+      let selectedLeft = null;
+      let matched = 0;
+
+      panel.innerHTML = `
+        <div class="match-grid">
+          <div class="match-col" id="match-left">
+            ${pairs.map((p, i) => `<div class="match-item" data-idx="${i}" data-side="left" onclick="selectMatch(this)">${p.left}</div>`).join('')}
+          </div>
+          <div class="match-col" id="match-right">
+            ${shuffledRight.map((p, i) => `<div class="match-item" data-val="${p.left}" data-side="right" onclick="selectMatch(this)">${p.right}</div>`).join('')}
+          </div>
+        </div>
+        <div id="match-done" style="display:none;text-align:center;padding:20px;font-weight:800;color:var(--sage)">Все пары совпали! 🎉</div>
+      `;
+
+      window.selectMatch = function(el) {
+        const side = el.dataset.side;
+        if (el.classList.contains('matched')) return;
+
+        if (side === 'left') {
+          document.querySelectorAll('.match-item[data-side="left"]').forEach(e => e.classList.remove('selected'));
+          el.classList.add('selected');
+          selectedLeft = el;
+        } else if (selectedLeft) {
+          // Check match
+          const leftIdx = parseInt(selectedLeft.dataset.idx);
+          const leftVal = pairs[leftIdx].left;
+          const rightVal = el.dataset.val;
+
+          if (leftVal === rightVal) {
+            selectedLeft.classList.add('matched');
+            selectedLeft.classList.remove('selected');
+            el.classList.add('matched');
+            selectedLeft = null;
+            matched++;
+            if (matched === pairs.length) {
+              document.getElementById('match-done').style.display = 'block';
+              exState.match = true;
+              checkCompletion();
+            }
+          } else {
+            selectedLeft.classList.add('wrong');
+            el.classList.add('wrong');
+            setTimeout(() => {
+              selectedLeft && selectedLeft.classList.remove('wrong', 'selected');
+              el.classList.remove('wrong');
+              selectedLeft = null;
+            }, 800);
+          }
+        }
+      };
+    }
+
+    function checkCompletion() {
+      if (exState.mcq || exState.fill || exState.match) {
+        const xp = currentTopic ? currentTopic.xp || 20 : 20;
+        markTopicDone(subjectId, grade, topicId || (currentTopic && currentTopic.id), xp);
+
+        // Find next topic
+        const idx = allTopics.findIndex(t => t.id === (topicId || (currentTopic && currentTopic.id)));
+        const next = allTopics[idx + 1];
+
+        const completion = document.getElementById('ex-completion');
+        completion.style.display = 'block';
+        completion.innerHTML = `
+          <div style="text-align:center;padding:30px">
+            <div style="font-size:3rem">🎉</div>
+            <h3 style="color:var(--brown);margin:12px 0">Отлично! +${xp} XP</h3>
+            <p style="color:var(--peach)">Тема пройдена! Продолжай в том же духе!</p>
+            ${next ? `<a href="topic.html?subject=${subjectId}&grade=${grade}&topic=${next.id}" class="btn btn-primary" style="margin-top:12px">Следующая тема: ${next.title} →</a>` : `<a href="subject.html?id=${subjectId}&grade=${grade}" class="btn btn-secondary" style="margin-top:12px">Вернуться к темам</a>`}
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

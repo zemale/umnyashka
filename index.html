@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>УмНяшка 🧠 — Учись легко и с удовольствием!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
+      <button class="nav-hamburger">☰</button>
+      <div class="nav-links">
+        <a href="subjects.html">Предметы</a>
+        <a href="test.html">Диагностика</a>
+        <a href="profile.html">Профиль</a>
+        <span id="nav-xp" class="nav-badge">⭐ 0 XP</span>
+        <span id="nav-streak" class="nav-badge">🔥 0</span>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <h1>Учись легко и с удовольствием! ✨</h1>
+      <p class="hero-sub">Умные персонажи помогут разобраться в любом предмете. Пройди диагностику и получай знания в своём темпе!</p>
+      <div class="hero-btns">
+        <a href="test.html" class="btn btn-primary btn-large">Пройти диагностику →</a>
+        <a href="subjects.html" class="btn btn-secondary btn-large">Выбрать предмет →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Все предметы</h2>
+      <div class="subjects-strip" id="subjects-strip">
+        <div class="loading-text">Загружаем предметы...</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">Как это работает</h2>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <div class="step-icon">🎯</div>
+          <h3>Пройди тест</h3>
+          <p>Диагностика определит твой стиль обучения и покажет, где у тебя пробелы</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <div class="step-icon">📖</div>
+          <h3>Учи темы</h3>
+          <p>Читай теорию, общайся с персонажем-помощником и выполняй упражнения</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <div class="step-icon">🏅</div>
+          <h3>Получай значки</h3>
+          <p>За каждое достижение ты получаешь XP и красивые значки в свою коллекцию</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2025 УмНяшка 🧠 — твой умный помощник в учёбе</p>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    fetch('data/subjects.json')
+      .then(r => r.json())
+      .then(subjects => {
+        const strip = document.getElementById('subjects-strip');
+        strip.innerHTML = subjects.map(s => `
+          <a href="subject.html?id=${s.id}&grade=${getGrade()}" class="subject-mini-card" style="border-top:4px solid ${s.color}">
+            <div class="subject-mini-emoji">${s.emoji}</div>
+            <div class="subject-mini-name">${s.name}</div>
+            <div class="subject-mini-char">${s.char}</div>
+          </a>
+        `).join('');
+      })
+      .catch(() => {
+        document.getElementById('subjects-strip').innerHTML = '<p>Не удалось загрузить предметы</p>';
+      });
+  </script>
+</body>
+</html>

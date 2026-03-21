@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Предметы — УмНяшка 🧠</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
+      <button class="nav-hamburger">☰</button>
+      <div class="nav-links">
+        <a href="subjects.html">Предметы</a>
+        <a href="test.html">Диагностика</a>
+        <a href="profile.html">Профиль</a>
+        <span id="nav-xp" class="nav-badge">⭐ 0 XP</span>
+        <span id="nav-streak" class="nav-badge">🔥 0</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" style="padding-top:30px">
+    <h1 style="color:var(--brown);margin-bottom:8px">Выбери предмет 📚</h1>
+    <p style="color:var(--peach);margin-bottom:24px">Выбери класс и предмет для обучения</p>
+
+    <div class="grade-tabs">
+      <button class="grade-btn" data-grade="5">5 класс</button>
+      <button class="grade-btn" data-grade="6">6 класс</button>
+      <button class="grade-btn" data-grade="7">7 класс</button>
+      <button class="grade-btn" data-grade="8">8 класс</button>
+      <button class="grade-btn" data-grade="9">9 класс</button>
+    </div>
+
+    <div class="subjects-grid" id="subjects-grid">
+      <div class="loading-text">Загружаем предметы...</div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    const GRADE_SUBJECTS = {
+      5: ['math','russian','lit','history','bio','geogr','english'],
+      6: ['math','russian','lit','history','social','bio','geogr','english'],
+      7: ['math','algebra','geo','russian','lit','history','social','physics','bio','geogr','english'],
+      8: ['math','algebra','geo','russian','lit','history','social','physics','chem','bio','geogr','english'],
+      9: ['math','algebra','geo','russian','lit','history','social','physics','chem','bio','geogr','english']
+    };
+
+    let allSubjects = [];
+    let topicsData = {};
+
+    Promise.all([
+      fetch('data/subjects.json').then(r => r.json()),
+      fetch('data/topics.json').then(r => r.json())
+    ]).then(([subjects, topics]) => {
+      allSubjects = subjects;
+      topicsData = topics;
+      const grade = initGradeSelector(renderSubjects);
+      renderSubjects(grade);
+    }).catch(err => {
+      document.getElementById('subjects-grid').innerHTML = '<p style="color:red">Ошибка загрузки данных</p>';
+    });
+
+    function renderSubjects(grade) {
+      const allowed = GRADE_SUBJECTS[grade] || GRADE_SUBJECTS[7];
+      const filtered = allSubjects.filter(s => allowed.includes(s.id));
+      const grid = document.getElementById('subjects-grid');
+
+      grid.innerHTML = filtered.map(s => {
+        const gradeTopics = (topicsData[s.id] && topicsData[s.id][grade]) || [];
+        const total = gradeTopics.length;
+        const prog = getProgress(s.id, grade, total);
+        const xp = getXP();
+
+        return `
+          <div class="subject-card" style="border-top:4px solid ${s.color}">
+            <div class="subject-card-emoji">${s.emoji}</div>
+            <h3 class="subject-card-name">${s.name}</h3>
+            <div class="subject-card-char">Персонаж: ${s.char}</div>
+            ${total > 0 ? `
+              <div class="progress-label">${prog.done} из ${prog.total} тем</div>
+              <div class="progress-bar-wrap" style="margin:8px 0">
+                <div class="progress-bar-fill" style="width:${prog.pct}%;background:${s.color}"></div>
+              </div>
+            ` : '<div class="progress-label" style="color:var(--peach)">Темы скоро появятся</div>'}
+            <a href="subject.html?id=${s.id}&grade=${grade}" class="btn btn-primary" style="width:100%;text-align:center;margin-top:12px;background:${s.color}">Открыть →</a>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
