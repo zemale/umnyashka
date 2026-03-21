@@ -122,8 +122,8 @@
       document.getElementById('chat-char-emoji').textContent = subj.emoji;
       document.getElementById('chat-char-name').textContent = subj.char;
 
-      // Init chat
-      initChat(subjectId);
+      // Init chat with topic context so character knows what's being studied
+      initChat(subjectId, { title: topic.title, theory: topic.theory });
 
       // Exercises
       const exKey = `${subjectId}_${grade}_${topicId}`;
