@@ -131,19 +131,24 @@
 
       initChat(subjectId, { title: topic.title, theory: topic.theory });
 
-      // Exercises
+      // Exercises — try multiple key variants
       const exKey = `${subjectId}_${grade}_${topicId}`;
-      const ex = exercises[exKey] || exercises[`${subjectId}_${grade}_${topic.id}`];
+      const exKey2 = `${subjectId}_${grade}_${topic.id}`;
+      const ex = exercises[exKey] || exercises[exKey2] || null;
+      document.getElementById('exercises-section').style.display = 'block';
       if (ex) {
-        document.getElementById('exercises-section').style.display = 'block';
-        renderMCQ(ex.mcq || []);
-        renderFill(ex.fill || []);
-        renderMatch(ex.match || []);
+        // Support both field name variants
+        const mcqData   = ex.mcq      || [];
+        const fillData  = ex.fill     || ex.fillblank || [];
+        const matchData = ex.match    || [];
+        renderMCQ(mcqData);
+        renderFill(fillData);
+        renderMatch(matchData);
       } else {
-        document.getElementById('exercises-section').style.display = 'block';
-        document.getElementById('ex-mcq').innerHTML = '<p style="color:var(--text3);text-align:center;padding:20px">Упражнений пока нет для этой темы 😊 Скоро добавим!</p>';
-        document.getElementById('ex-fill').innerHTML = '<p style="color:var(--text3);text-align:center;padding:20px">Упражнений пока нет для этой темы 😊 Скоро добавим!</p>';
-        document.getElementById('ex-match').innerHTML = '<p style="color:var(--text3);text-align:center;padding:20px">Упражнений пока нет для этой темы 😊 Скоро добавим!</p>';
+        const msg = '<p style="color:var(--text3);text-align:center;padding:20px">Упражнений пока нет — скоро добавим! 😊</p>';
+        document.getElementById('ex-mcq').innerHTML = msg;
+        document.getElementById('ex-fill').innerHTML = msg;
+        document.getElementById('ex-match').innerHTML = msg;
       }
 
       // Tab switching
@@ -163,28 +168,37 @@
       let score = 0;
       let answered = 0;
 
-      panel.innerHTML = questions.map((q, qi) => `
-        <div class="mcq-question" id="mcq-q${qi}">
-          <div class="mcq-text" style="font-weight:800;color:var(--text);margin-bottom:12px">${qi+1}. ${q.question}</div>
-          <div class="mcq-answers">
-            ${q.options.map((opt, oi) => `
-              <button class="answer-btn" onclick="mcqAnswer(${qi},${oi},${q.correct},'${panel.id}')">${opt}</button>
-            `).join('')}
+      panel.innerHTML = questions.map((q, qi) => {
+        // Support both q.q and q.question field names
+        const qText = q.q || q.question || '';
+        return `
+          <div class="ex-item" id="mcq-q${qi}">
+            <div class="ex-text">${qi+1}. ${qText}</div>
+            <div>
+              ${q.options.map((opt, oi) => `
+                <button class="opt-btn" onclick="mcqAnswer(${qi},${oi},${q.correct})">${opt}</button>
+              `).join('')}
+            </div>
+            <div class="feedback" id="mcq-fb${qi}" style="display:none"></div>
           </div>
-        </div>
-      `).join('') + `<div id="mcq-score" style="display:none;text-align:center;padding:20px;font-weight:800;color:var(--sage)"></div>`;
+        `;
+      }).join('') + `<div id="mcq-score" style="display:none;text-align:center;padding:20px;font-weight:800;font-size:1.1rem;color:var(--sage)"></div>`;
 
-      window.mcqAnswer = function(qi, selected, correct, panelId) {
+      window.mcqAnswer = function(qi, selected, correct) {
         const qEl = document.getElementById('mcq-q' + qi);
-        const btns = qEl.querySelectorAll('.answer-btn');
+        const btns = qEl.querySelectorAll('.opt-btn');
         btns.forEach(b => b.disabled = true);
         btns[selected].classList.add(selected === correct ? 'correct' : 'wrong');
-        btns[correct].classList.add('correct');
+        if (selected !== correct) btns[correct].classList.add('correct');
+        const fb = document.getElementById('mcq-fb' + qi);
+        const q = questions[qi];
+        if (q.hint) { fb.textContent = '💡 ' + q.hint; fb.style.display = 'block'; }
         if (selected === correct) score++;
         answered++;
         if (answered === questions.length) {
-          document.getElementById('mcq-score').style.display = 'block';
-          document.getElementById('mcq-score').textContent = `Результат: ${score}/${questions.length} ✅`;
+          const scoreEl = document.getElementById('mcq-score');
+          scoreEl.style.display = 'block';
+          scoreEl.textContent = `Результат: ${score}/${questions.length} ✅`;
           exState.mcq = true;
           checkCompletion();
         }
@@ -196,30 +210,35 @@
       if (!items.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text3)">Нет упражнений</p>'; return; }
 
       panel.innerHTML = items.map((item, i) => {
-        const parts = item.sentence.split('___');
+        // Support both item.sentence and item.q field names
+        const sentence = item.sentence || item.q || '';
+        const parts = sentence.split('___');
+        const ans = (item.answer || '').replace(/'/g, "\\'");
+        const hint = (item.hint || 'Подумай ещё!').replace(/'/g, "\\'");
         return `
-          <div class="fill-item" id="fill-${i}" style="margin-bottom:16px">
-            <div class="fill-sentence" style="font-size:.95rem;color:var(--text);margin-bottom:8px">
-              ${parts[0]}<input type="text" class="fill-input" id="fill-input-${i}" placeholder="..."> ${parts[1] || ''}
+          <div class="ex-item" id="fill-${i}">
+            <div class="ex-text">
+              ${parts[0]}<input type="text" class="fill-input" id="fill-input-${i}" placeholder="впиши ответ">${parts[1] || ''}
             </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-primary btn-sm" onclick="checkFill(${i},'${item.answer}')">Проверить</button>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn btn-primary btn-sm" onclick="checkFill(${i},'${ans}','${hint}')">Проверить ✓</button>
             </div>
-            <div class="fill-hint" id="fill-hint-${i}" style="display:none;color:var(--peach);margin-top:8px;font-size:.85rem;font-weight:700">
-              💡 Подсказка: ${item.hint || 'Подумай ещё!'}
-            </div>
+            <div id="fill-fb-${i}" style="display:none;margin-top:8px;font-weight:700;font-size:.95rem"></div>
           </div>
         `;
-      }).join('') + `<div id="fill-done" style="display:none;text-align:center;padding:20px;font-weight:800;color:var(--sage)">Все упражнения выполнены! 🎉</div>`;
+      }).join('') + `<div id="fill-done" style="display:none;text-align:center;padding:20px;font-weight:800;font-size:1.1rem;color:var(--sage)">Все пропуски заполнены! 🎉</div>`;
 
       let fillDone = 0;
-      window.checkFill = function(i, answer) {
+      window.checkFill = function(i, answer, hint) {
         const input = document.getElementById('fill-input-' + i);
+        const fb = document.getElementById('fill-fb-' + i);
         const val = input.value.trim().toLowerCase();
         const correct = answer.toLowerCase();
-        if (val === correct || val.includes(correct) || correct.includes(val)) {
-          input.classList.add('correct');
+        const isCorrect = val === correct || correct.startsWith(val) || val.startsWith(correct);
+        if (isCorrect) {
+          input.classList.remove('wrong'); input.classList.add('correct');
           input.disabled = true;
+          fb.textContent = '✅ Правильно!'; fb.style.color = 'var(--sage)'; fb.style.display = 'block';
           fillDone++;
           if (fillDone === items.length) {
             document.getElementById('fill-done').style.display = 'block';
@@ -228,14 +247,27 @@
           }
         } else {
           input.classList.add('wrong');
-          document.getElementById('fill-hint-' + i).style.display = 'block';
-          setTimeout(() => input.classList.remove('wrong'), 1000);
+          fb.textContent = '💡 Подсказка: ' + hint; fb.style.color = 'var(--peach)'; fb.style.display = 'block';
+          setTimeout(() => input.classList.remove('wrong'), 1200);
         }
       };
     }
 
-    function renderMatch(pairs) {
+    function renderMatch(rawPairs) {
       const panel = document.getElementById('ex-match');
+
+      // Normalise: support {left,right} array OR {pairs:[[a,b],...]} format
+      let pairs = [];
+      if (Array.isArray(rawPairs)) {
+        rawPairs.forEach(p => {
+          if (p.pairs && Array.isArray(p.pairs)) {
+            p.pairs.forEach(([l, r]) => pairs.push({left: l, right: r}));
+          } else if (p.left !== undefined) {
+            pairs.push({left: p.left, right: p.right});
+          }
+        });
+      }
+
       if (!pairs.length) { panel.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text3)">Нет упражнений</p>'; return; }
 
       const shuffledRight = [...pairs].sort(() => Math.random() - 0.5);
@@ -243,33 +275,32 @@
       let matched = 0;
 
       panel.innerHTML = `
+        <p style="color:var(--text3);font-size:.9rem;margin-bottom:14px">Нажми на левый элемент, потом на правый — найди пары</p>
         <div class="match-grid">
-          <div id="match-left">
+          <div id="match-left" style="display:flex;flex-direction:column;gap:10px">
             ${pairs.map((p, i) => `<div class="match-item" data-idx="${i}" data-side="left" onclick="selectMatch(this)">${p.left}</div>`).join('')}
           </div>
-          <div id="match-right">
-            ${shuffledRight.map((p, i) => `<div class="match-item" data-val="${p.left}" data-side="right" onclick="selectMatch(this)">${p.right}</div>`).join('')}
+          <div id="match-right" style="display:flex;flex-direction:column;gap:10px">
+            ${shuffledRight.map((p) => `<div class="match-item" data-val="${p.left.replace(/"/g,'&quot;')}" data-side="right" onclick="selectMatch(this)">${p.right}</div>`).join('')}
           </div>
         </div>
-        <div id="match-done" style="display:none;text-align:center;padding:20px;font-weight:800;color:var(--sage)">Все пары совпали! 🎉</div>
+        <div id="match-done" style="display:none;text-align:center;padding:20px;font-weight:800;font-size:1.1rem;color:var(--sage)">Все пары найдены! 🎉</div>
       `;
 
       window.selectMatch = function(el) {
-        const side = el.dataset.side;
         if (el.classList.contains('matched')) return;
+        const side = el.dataset.side;
 
         if (side === 'left') {
           document.querySelectorAll('.match-item[data-side="left"]').forEach(e => e.classList.remove('selected'));
           el.classList.add('selected');
           selectedLeft = el;
         } else if (selectedLeft) {
-          const leftIdx = parseInt(selectedLeft.dataset.idx);
-          const leftVal = pairs[leftIdx].left;
+          const leftVal = pairs[parseInt(selectedLeft.dataset.idx)].left;
           const rightVal = el.dataset.val;
 
           if (leftVal === rightVal) {
-            selectedLeft.classList.add('matched');
-            selectedLeft.classList.remove('selected');
+            selectedLeft.classList.add('matched'); selectedLeft.classList.remove('selected');
             el.classList.add('matched');
             selectedLeft = null;
             matched++;
@@ -279,13 +310,11 @@
               checkCompletion();
             }
           } else {
-            selectedLeft.classList.add('wrong');
-            el.classList.add('wrong');
+            selectedLeft.classList.add('wrong'); el.classList.add('wrong');
             setTimeout(() => {
-              selectedLeft && selectedLeft.classList.remove('wrong', 'selected');
+              if (selectedLeft) { selectedLeft.classList.remove('wrong','selected'); selectedLeft = null; }
               el.classList.remove('wrong');
-              selectedLeft = null;
-            }, 800);
+            }, 900);
           }
         }
       };
