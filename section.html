@@ -715,29 +715,57 @@
     try {
       const body = {
         contents: [{ parts: geminiParts }],
-        systemInstruction: { parts: [{ text: `Ты — ${section.char}, ${section.char_desc}. Оцени вступительный тест ученика.` }] },
-        generationConfig: { maxOutputTokens: 2000, temperature: 0.7 }
+        systemInstruction: { parts: [{ text: `Ты — ${section.char}, ${section.char_desc}. Говори по-русски, тепло, на «ты».` }] },
+        generationConfig: { maxOutputTokens: 2500, temperature: 0.7 }
       };
       const resp = await fetch(GEMINI_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
       const data = await resp.json();
       const result = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-      // Парсим уровень
-      const lvlMatch = result.match(/УРОВЕНЬ:\s*([123])/i);
+      // Парсим уровень — несколько вариантов
+      const lvlMatch = result.match(/УРОВЕНЬ:\s*([123])/i)
+                    || result.match(/уровень[^:]*:\s*\*{0,2}([123])/i)
+                    || result.match(/итог[^:]*:\s*\*{0,2}([123])/i);
       if (lvlMatch) level = parseInt(lvlMatch[1]);
 
-      // Парсим детальный фидбек по качествам
-      const blockRegex = /КАЧЕСТВО:\s*(.+?)\nСИЛА:\s*(.+?)\nРОСТ:\s*(.+?)(?=\nКАЧЕСТВО:|\nУРОВЕНЬ:|$)/gs;
-      let match;
-      while ((match = blockRegex.exec(result)) !== null) {
-        qualityFeedback.push({ quality: match[1].trim(), strength: match[2].trim(), growth: match[3].trim() });
+      // Парсим блоки по качествам — нормализуем переносы, убираем markdown **
+      const clean = result.replace(/\*\*/g, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      const lines = clean.split('\n');
+      let cur = null;
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        if (/^КАЧЕСТВО:/i.test(trimmed)) {
+          if (cur && cur.strength) qualityFeedback.push(cur);
+          cur = { quality: trimmed.replace(/^КАЧЕСТВО:\s*/i, ''), strength: '', growth: '' };
+        } else if (cur && /^СИЛА:/i.test(trimmed)) {
+          cur.strength = trimmed.replace(/^СИЛА:\s*/i, '');
+        } else if (cur && /^РОСТ:/i.test(trimmed)) {
+          cur.growth = trimmed.replace(/^РОСТ:\s*/i, '');
+        } else if (cur && cur.strength && !cur.growth) {
+          cur.strength += ' ' + trimmed;  // многострочная СИЛА
+        } else if (cur && cur.growth) {
+          cur.growth += ' ' + trimmed;    // многострочный РОСТ
+        }
       }
-      // Fallback если парсинг не удался
+      if (cur && cur.strength) qualityFeedback.push(cur);
+
+      // Fallback если ничего не распарсилось
       if (!qualityFeedback.length) {
-        qualityFeedback = [{ quality: 'Общий вывод', strength: result.slice(0, 300), growth: 'Продолжай заниматься — прогресс обязательно будет!' }];
+        // Пытаемся разбить по пустым строкам
+        const blocks = clean.split(/\n\n+/);
+        qualityFeedback = blocks.slice(0, 5).map((b, i) => ({
+          quality: tasks[i] ? tasks[i].quality : `Качество ${i+1}`,
+          strength: b.slice(0, 200),
+          growth: 'Продолжай практиковаться!'
+        })).filter(b => b.strength.length > 10);
+      }
+      if (!qualityFeedback.length) {
+        qualityFeedback = [{ quality: 'Оценка педагога', strength: clean.slice(0, 400), growth: 'Продолжай заниматься — прогресс обязательно будет!' }];
       }
     } catch(e) {
-      qualityFeedback = [{ quality: 'Общий вывод', strength: 'Отличный старт! Я вижу твой потенциал.', growth: 'Начнём с основ и постепенно дойдём до уверенного уровня.' }];
+      console.error('Eval error:', e);
+      qualityFeedback = [{ quality: 'Общий вывод', strength: 'Отличный старт! Я вижу твой потенциал.', growth: 'Начнём с основ и будем двигаться вперёд шаг за шагом.' }];
     }
 
     userLevel = level;
@@ -747,24 +775,28 @@
 
   function buildEvalPrompt(sec, tasks, answerLines) {
     const lines = answerLines.join('\n\n');
-    const qualityList = tasks.map(t => t.quality || '').filter(Boolean).join(', ');
-    return `Ты — ${sec.char}, педагог. Проведи детальную оценку вступительного теста ученика по секции «${sec.name}».
+    const qualities = tasks.filter(t => t.quality).map(t => t.quality);
+    return `Оцени вступительный тест ученика по секции "${sec.name}".
 
-Ответы ученика:
+ОТВЕТЫ УЧЕНИКА:
 ${lines}
 
-Оцени КАЖДОЕ из этих качеств: ${qualityList}
+Для каждого из этих качеств напиши блок в ТОЧНО таком формате (без отступов, без лишних символов):
 
-Для каждого качества дай структурированный ответ в точном формате:
+КАЧЕСТВО: ${qualities[0] || 'Качество 1'}
+СИЛА: [что хорошо — 1 предложение]
+РОСТ: [что улучшить и как — 1 предложение]
 
-КАЧЕСТВО: [название качества]
-СИЛА: [что уже хорошо — конкретно, 1–2 предложения]
-РОСТ: [конкретный совет что улучшить и как — 1–2 предложения]
+КАЧЕСТВО: ${qualities[1] || 'Качество 2'}
+СИЛА: [что хорошо]
+РОСТ: [что улучшить]
 
-После всех качеств — общий итог:
-УРОВЕНЬ: [1 = Начинающий, 2 = Средний, 3 = Продвинутый]
+...и так для всех ${qualities.length} качеств: ${qualities.join(', ')}
 
-Обращайся к ученику на «ты». Говори как педагог — тепло, конкретно, с верой в ученика.`;
+В конце:
+УРОВЕНЬ: 1
+
+(1 = Начинающий, 2 = Средний, 3 = Продвинутый — выбери подходящее)`;
   }
 
   function renderTestResult(modal, level, qualityFeedback) {
