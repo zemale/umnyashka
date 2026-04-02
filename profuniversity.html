@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ПрофУчёба — УмНяшка 🧠</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .pu-hero {
+      text-align:center; padding:48px 0 32px;
+    }
+    .pu-hero h1 { font-size:2.2rem; font-weight:900; margin-bottom:12px; }
+    .pu-hero p { color:var(--text2); max-width:540px; margin:0 auto; font-size:1rem; }
+    .pu-badge {
+      display:inline-block; background:var(--sage); color:#fff;
+      border-radius:20px; padding:5px 16px; font-weight:800; font-size:.82rem;
+      margin-bottom:16px;
+    }
+    .dir-grid {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+      gap:18px; margin-bottom:48px;
+    }
+    .dir-card {
+      background:var(--card); border-radius:20px; border:1.5px solid var(--border);
+      padding:24px; cursor:pointer; transition:.18s; text-decoration:none;
+      display:block; position:relative; overflow:hidden;
+    }
+    .dir-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:4px;
+      background:var(--dc,var(--sage));
+    }
+    .dir-card:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(0,0,0,.1); }
+    .dir-emoji { font-size:2.4rem; margin-bottom:12px; }
+    .dir-name { font-size:1.15rem; font-weight:900; margin-bottom:6px; }
+    .dir-desc { color:var(--text2); font-size:.85rem; line-height:1.5; margin-bottom:14px; }
+    .dir-prof-list {
+      display:flex; flex-wrap:wrap; gap:6px;
+    }
+    .dir-prof-chip {
+      background:var(--bg2); border-radius:20px; padding:3px 10px;
+      font-size:.75rem; font-weight:700; color:var(--text2);
+    }
+    .dir-count {
+      position:absolute; top:16px; right:16px;
+      font-size:.72rem; font-weight:800; color:var(--text3);
+    }
+    .section-header-row {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:24px; flex-wrap:wrap; gap:12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-deco">
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="bg-blob blob3"></div>
+  </div>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
+      <button class="nav-hamburger" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
+      <div class="nav-links">
+        <a href="subjects.html">Предметы</a>
+        <a href="sections.html">Секции</a>
+        <a href="profuniversity.html" style="color:var(--sage)">ПрофУчёба</a>
+        <a href="test.html">Диагностика</a>
+        <a href="profile.html">Профиль</a>
+        <span id="nav-xp" class="nav-badge">⭐ 0 XP</span>
+        <span id="nav-streak" class="nav-badge">🔥 0</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="pu-hero">
+      <div class="pu-badge">🎓 ПрофУчёба</div>
+      <h1>Университет<br>для школьников</h1>
+      <p>Изучай профессии изнутри — простым языком, с реальными задачами. Узнай о своей будущей профессии ещё в школе!</p>
+    </div>
+
+    <div class="section-header-row">
+      <div class="section-label">🗂️ Выбери направление</div>
+      <div style="color:var(--text2);font-size:.85rem;font-weight:700">10 направлений · 30 профессий · 210 тем</div>
+    </div>
+
+    <div class="dir-grid" id="dir-grid">
+      <div class="loading-text">Загружаем направления...</div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2025 УмНяшка 🧠 — твой умный помощник в учёбе</p>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+  fetch('data/profuniversity.json')
+    .then(r => r.json())
+    .then(directions => {
+      const grid = document.getElementById('dir-grid');
+      grid.innerHTML = directions.map(d => `
+        <a href="profdir.html?id=${d.id}" class="dir-card fade-up" style="--dc:${d.color}">
+          <div class="dir-count">${d.professions.length} профессии</div>
+          <div class="dir-emoji">${d.emoji}</div>
+          <div class="dir-name">${d.name}</div>
+          <div class="dir-desc">${d.desc}</div>
+          <div class="dir-prof-list">
+            ${d.professions.map(p => `<span class="dir-prof-chip">${p.emoji} ${p.name}</span>`).join('')}
+          </div>
+        </a>
+      `).join('');
+    });
+  updateNavXP();
+  updateNavStreak();
+  </script>
+</body>
+</html>

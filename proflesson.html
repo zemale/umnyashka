@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Урок — ПрофУчёба 🎓</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Шапка ──────────────────────────────────────────── */
+    .lesson-header { padding:24px 0 16px; }
+    .lesson-breadcrumb { font-size:.82rem; color:var(--text3); font-weight:700; margin-bottom:12px; }
+    .lesson-breadcrumb a { color:var(--text3); text-decoration:none; }
+    .lesson-breadcrumb a:hover { color:var(--sage); }
+    .lesson-title-row { display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap; }
+    .lesson-prof-badge {
+      display:flex; align-items:center; gap:8px; background:var(--card);
+      border-radius:12px; border:1.5px solid var(--border); padding:8px 14px;
+      font-weight:800; font-size:.85rem; flex-shrink:0;
+    }
+    .lesson-h1 { font-size:1.7rem; font-weight:900; margin-bottom:4px; }
+    .lesson-sub { color:var(--text2); font-size:.9rem; }
+
+    /* ── Лейаут ─────────────────────────────────────────── */
+    .lesson-layout {
+      display:grid; grid-template-columns:240px 1fr;
+      gap:22px; margin-bottom:48px; align-items:start;
+    }
+    @media(max-width:768px){ .lesson-layout{ grid-template-columns:1fr; } }
+
+    /* ── Сайдбар тем ────────────────────────────────────── */
+    .topics-sidebar {
+      background:var(--card); border-radius:18px;
+      border:1.5px solid var(--border); overflow:hidden;
+      position:sticky; top:80px;
+    }
+    .sidebar-label {
+      padding:12px 16px; border-bottom:1px solid var(--border);
+      font-size:.8rem; font-weight:900; text-transform:uppercase;
+      letter-spacing:.05em; color:var(--text3); background:var(--bg2);
+    }
+    .topic-nav-item {
+      display:flex; align-items:center; gap:9px;
+      padding:10px 14px; cursor:pointer; font-size:.85rem; font-weight:700;
+      border-bottom:1px solid var(--border); transition:background .15s;
+    }
+    .topic-nav-item:last-child { border-bottom:none; }
+    .topic-nav-item:hover { background:var(--bg2); }
+    .topic-nav-item.active { background:#e8f5ee; color:var(--sage); }
+    .topic-nav-item.done { color:var(--text3); }
+    .topic-nav-num {
+      width:22px; height:22px; border-radius:50%; background:var(--border);
+      display:flex; align-items:center; justify-content:center;
+      font-size:.68rem; font-weight:900; flex-shrink:0;
+    }
+    .topic-nav-item.active .topic-nav-num { background:var(--sage); color:#fff; }
+    .topic-nav-item.done .topic-nav-num { background:#d4edda; color:#28a745; font-size:.8rem; }
+
+    /* ── Контент урока ──────────────────────────────────── */
+    .lesson-main { display:flex; flex-direction:column; gap:18px; }
+
+    .content-card {
+      background:var(--card); border-radius:20px; border:1.5px solid var(--border);
+    }
+    .content-card-header {
+      display:flex; align-items:center; gap:12px; padding:16px 20px;
+      border-bottom:1px solid var(--border); background:var(--bg2); border-radius:20px 20px 0 0;
+    }
+    .content-card-body { padding:22px; }
+
+    /* Разделы внутри урока */
+    .sections-list { display:flex; flex-direction:column; gap:0; }
+    .section-item {
+      border-bottom:1px solid var(--border); cursor:pointer; transition:.15s;
+    }
+    .section-item:last-child { border-bottom:none; }
+    .section-item-header {
+      display:flex; align-items:center; gap:12px; padding:14px 16px;
+    }
+    .section-item-header:hover { background:var(--bg2); }
+    .section-item.open .section-item-header { background:#f0f9f4; }
+    .section-num {
+      width:28px; height:28px; border-radius:50%; background:var(--border);
+      display:flex; align-items:center; justify-content:center;
+      font-size:.78rem; font-weight:900; flex-shrink:0; color:var(--text2);
+    }
+    .section-item.done .section-num { background:#d4edda; color:#28a745; }
+    .section-item.open .section-num { background:var(--sage); color:#fff; }
+    .section-item-title { flex:1; font-weight:700; font-size:.9rem; }
+    .section-arrow { color:var(--text3); font-size:.8rem; transition:.2s; }
+    .section-item.open .section-arrow { transform:rotate(90deg); }
+    .section-body {
+      display:none; padding:0 16px 16px 56px;
+    }
+    .section-item.open .section-body { display:block; }
+    .section-theory {
+      background:var(--bg2); border-radius:12px; padding:14px 16px;
+      font-size:.9rem; line-height:1.7; margin-bottom:12px;
+    }
+    .section-practice {
+      background:#f0f9f4; border:1.5px solid #c8e6d0;
+      border-radius:12px; padding:14px 16px; margin-bottom:12px;
+    }
+    .section-practice .block-label { color:var(--sage); margin-bottom:6px; }
+    .block-label { font-size:.7rem; font-weight:900; text-transform:uppercase; letter-spacing:.06em; color:var(--text3); }
+    .section-text { font-size:.9rem; line-height:1.6; }
+    .section-done-btn {
+      padding:9px 20px; background:var(--sage); color:#fff; border:none;
+      border-radius:10px; font-family:'Nunito',sans-serif; font-weight:800;
+      font-size:.85rem; cursor:pointer; transition:.2s;
+    }
+    .section-done-btn:hover { filter:brightness(1.08); }
+    .section-done-btn:disabled { background:#d4edda; color:#28a745; cursor:default; }
+
+    /* Загрузка */
+    .generating-card {
+      background:var(--card); border-radius:20px; border:1.5px solid var(--border);
+      padding:40px 24px; text-align:center;
+    }
+    .gen-spinner { font-size:2.5rem; animation:spin 2s linear infinite; display:inline-block; margin-bottom:14px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .gen-title { font-size:1.1rem; font-weight:900; margin-bottom:8px; }
+    .gen-sub { color:var(--text2); font-size:.88rem; }
+    .gen-progress { margin-top:16px; height:6px; background:var(--border); border-radius:4px; }
+    .gen-progress-fill { height:100%; background:var(--sage); border-radius:4px; width:0; transition:width .4s; }
+
+    /* ── Чат ────────────────────────────────────────────── */
+    .chat-card {
+      background:var(--card); border-radius:20px; border:1.5px solid var(--border);
+      overflow:hidden;
+    }
+    .chat-card-header {
+      display:flex; align-items:center; gap:12px; padding:14px 18px;
+      border-bottom:1px solid var(--border); background:var(--bg2);
+    }
+    .chat-avatar {
+      width:42px; height:42px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center; font-size:1.3rem;
+    }
+    .chat-info .cname { font-weight:900; font-size:.92rem; }
+    .chat-info .cdesc { font-size:.73rem; color:var(--text2); }
+    .chat-messages {
+      height:280px; overflow-y:auto; padding:12px 14px;
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .chat-msg {
+      max-width:82%; padding:9px 12px; border-radius:13px;
+      font-size:.88rem; line-height:1.5;
+    }
+    .chat-msg.user { align-self:flex-end; background:var(--sage); color:#fff; border-bottom-right-radius:3px; }
+    .chat-msg.char { align-self:flex-start; background:var(--bg2); color:var(--text); border-bottom-left-radius:3px; }
+    .chat-typing { align-self:flex-start; display:flex; gap:4px; padding:10px 12px; background:var(--bg2); border-radius:13px; border-bottom-left-radius:3px; }
+    .chat-typing span { width:5px; height:5px; background:var(--text3); border-radius:50%; animation:typing-b .8s infinite; }
+    .chat-typing span:nth-child(2){ animation-delay:.15s; }
+    .chat-typing span:nth-child(3){ animation-delay:.3s; }
+    @keyframes typing-b { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+    .chat-input-row { display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--border); }
+    .chat-input {
+      flex:1; padding:8px 12px; border-radius:10px;
+      border:1.5px solid var(--border); background:var(--bg2);
+      font-family:'Nunito',sans-serif; font-size:.88rem; color:var(--text); outline:none;
+    }
+    .chat-input:focus { border-color:var(--sage); }
+    .chat-send-btn {
+      padding:8px 14px; background:var(--sage); color:#fff;
+      border:none; border-radius:10px; cursor:pointer;
+      font-weight:800; font-family:'Nunito',sans-serif; transition:.2s;
+    }
+    .chat-send-btn:disabled { opacity:.5; cursor:default; }
+
+    /* Навигация между темами */
+    .topic-nav-row {
+      display:flex; gap:12px; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap;
+    }
+    .nav-btn {
+      padding:11px 22px; border-radius:13px; border:1.5px solid var(--border);
+      background:var(--card); font-family:'Nunito',sans-serif; font-weight:800;
+      font-size:.88rem; cursor:pointer; transition:.2s; color:var(--text);
+    }
+    .nav-btn:hover { background:var(--bg2); }
+    .nav-btn.primary { background:var(--sage); color:#fff; border-color:var(--sage); }
+    .nav-btn.primary:hover { filter:brightness(1.08); }
+    .nav-btn:disabled { opacity:.4; cursor:default; }
+  </style>
+</head>
+<body>
+  <div class="bg-deco">
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="bg-blob blob3"></div>
+  </div>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
+      <button class="nav-hamburger" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
+      <div class="nav-links">
+        <a href="subjects.html">Предметы</a>
+        <a href="sections.html">Секции</a>
+        <a href="profuniversity.html">ПрофУчёба</a>
+        <a href="test.html">Диагностика</a>
+        <a href="profile.html">Профиль</a>
+        <span id="nav-xp" class="nav-badge">⭐ 0 XP</span>
+        <span id="nav-streak" class="nav-badge">🔥 0</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="lesson-header">
+      <div class="lesson-breadcrumb" id="breadcrumb">Загрузка...</div>
+      <div class="lesson-title-row">
+        <div class="lesson-prof-badge" id="prof-badge">⏳</div>
+        <div>
+          <div class="lesson-h1" id="lesson-title">Загрузка...</div>
+          <div class="lesson-sub" id="lesson-sub"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="topic-nav-row" id="topic-nav-row"></div>
+
+    <div class="lesson-layout" id="lesson-layout">
+      <!-- Сайдбар -->
+      <div class="topics-sidebar">
+        <div class="sidebar-label">📚 Темы курса</div>
+        <div id="topics-nav"></div>
+      </div>
+      <!-- Основной контент -->
+      <div class="lesson-main" id="lesson-main">
+        <div class="generating-card">
+          <div class="gen-spinner">⚙️</div>
+          <div class="gen-title">Готовим урок...</div>
+          <div class="gen-sub">Подождите секунду</div>
+          <div class="gen-progress"><div class="gen-progress-fill" id="gen-fill"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container"><p>© 2025 УмНяшка 🧠</p></div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="config.js" onerror="console.log('no config')"></script>
+  <script src="js/gemini.js"></script>
+  <script>
+  const params = new URLSearchParams(location.search);
+  const dirId   = params.get('dir');
+  const profId  = params.get('prof');
+  const topicId = params.get('topic');
+
+  let dir = null, prof = null, currentTopic = null;
+  let doneTopics = get(`pu_done_${dirId}_${profId}`, []);
+  let doneSections = get(`pu_secdone_${dirId}_${profId}_${topicId}`, []);
+  let chatHistory = [];
+  let chatSending = false;
+
+  // ── КЕШИРОВАНИЕ контента ─────────────────────────────────────
+  function getCachedLesson(dirId, profId, topicId) {
+    try { return JSON.parse(localStorage.getItem(`pu_content_${dirId}_${profId}_${topicId}`)); } catch(e) { return null; }
+  }
+  function setCachedLesson(dirId, profId, topicId, data) {
+    try { localStorage.setItem(`pu_content_${dirId}_${profId}_${topicId}`, JSON.stringify(data)); } catch(e) {}
+  }
+
+  // ── ГЕНЕРАЦИЯ КОНТЕНТА ───────────────────────────────────────
+  async function generateLesson(dir, prof, topic) {
+    const cached = getCachedLesson(dirId, profId, topic.id);
+    if (cached) return cached;
+
+    const prompt = `Ты — ${prof.char}, ${prof.char_desc}.
+Напиши обучающий урок для школьника 12–15 лет по теме «${topic.title}» в профессии «${prof.name}» (направление: ${dir.name}).
+
+Создай РОВНО 10 разделов. Каждый раздел — небольшой кусочек знания.
+Это для раздела «ПрофУчёба» — объясняй как будущему студенту, простым живым языком.
+Можно упоминать что изучают в вузе по этой специальности.
+Связывай с реальной жизнью, примерами, профиландом профессий (сайт о профессиях для школьников).
+
+Строго соблюдай формат — 10 блоков:
+
+РАЗДЕЛ: [название раздела, 3-5 слов]
+ТЕОРИЯ: [объяснение, 4-6 предложений, простым языком, без сложных терминов или с объяснением каждого]
+ПРАКТИКА: [конкретное задание которое школьник может выполнить прямо сейчас, 2-3 предложения]
+
+РАЗДЕЛ: [следующий]
+ТЕОРИЯ: ...
+ПРАКТИКА: ...
+
+...и так все 10 разделов.`;
+
+    try {
+      const result = await callGemini(
+        `Ты ${prof.char}, опытный наставник. Пишешь материал для школьников 12-15 лет.`,
+        [{ role: 'user', parts: [{ text: prompt }] }],
+        0
+      );
+      const sections = parseLessonSections(result);
+      const data = { sections, generated: Date.now() };
+      setCachedLesson(dirId, profId, topic.id, data);
+      return data;
+    } catch(e) {
+      return { sections: getOfflineLesson(prof, topic), generated: Date.now() };
+    }
+  }
+
+  function parseLessonSections(text) {
+    const clean = text.replace(/\*\*/g, '').replace(/\r\n/g, '\n');
+    const lines = clean.split('\n');
+    const sections = [];
+    let cur = null;
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t) continue;
+      if (/^РАЗДЕЛ:/i.test(t)) {
+        if (cur && cur.title) sections.push(cur);
+        cur = { title: t.replace(/^РАЗДЕЛ:\s*/i, ''), theory: '', practice: '' };
+      } else if (cur && /^ТЕОРИЯ:/i.test(t)) {
+        cur.theory = t.replace(/^ТЕОРИЯ:\s*/i, '');
+      } else if (cur && /^ПРАКТИКА:/i.test(t)) {
+        cur.practice = t.replace(/^ПРАКТИКА:\s*/i, '');
+      } else if (cur) {
+        if (!cur.practice && cur.theory) cur.theory += ' ' + t;
+        else if (cur.practice) cur.practice += ' ' + t;
+        else if (cur.title && !cur.theory) cur.theory = t;
+      }
+    }
+    if (cur && cur.title) sections.push(cur);
+    return sections.slice(0, 10);
+  }
+
+  function getOfflineLesson(prof, topic) {
+    return Array.from({length: 10}, (_, i) => ({
+      title: `Раздел ${i+1}: ${topic.title}`,
+      theory: `Это важная часть профессии ${prof.name}. Для просмотра полного контента необходимо подключение к интернету.`,
+      practice: `Запиши вопросы которые у тебя возникли по теме «${topic.title}» — и обсуди их с педагогом.`
+    }));
+  }
+
+  // ── РЕНДЕРИНГ ────────────────────────────────────────────────
+  function renderTopicsNav() {
+    const nav = document.getElementById('topics-nav');
+    nav.innerHTML = prof.topics.map((t, i) => {
+      const done = doneTopics.includes(t.id);
+      const active = t.id === currentTopic.id;
+      return `<div class="topic-nav-item ${active ? 'active' : ''} ${done ? 'done' : ''}"
+          onclick="navigateToTopic('${t.id}')">
+        <div class="topic-nav-num">${done ? '✓' : i+1}</div>
+        <div style="flex:1;font-size:.82rem">${t.title}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderTopicNav() {
+    const idx = prof.topics.findIndex(t => t.id === currentTopic.id);
+    const prev = prof.topics[idx - 1];
+    const next = prof.topics[idx + 1];
+    document.getElementById('topic-nav-row').innerHTML = `
+      <button class="nav-btn" onclick="navigateToTopic('${prev?.id}')" ${!prev ? 'disabled' : ''}>
+        ← ${prev ? prev.title : 'Начало'}
+      </button>
+      <div style="color:var(--text3);font-size:.82rem;font-weight:700;align-self:center">
+        Тема ${idx+1} из ${prof.topics.length}
+      </div>
+      <button class="nav-btn primary" onclick="navigateToTopic('${next?.id}')" ${!next ? 'disabled' : ''}>
+        ${next ? next.title : 'Конец курса'} →
+      </button>`;
+  }
+
+  async function renderLesson() {
+    const main = document.getElementById('lesson-main');
+    main.innerHTML = `<div class="generating-card">
+      <div class="gen-spinner">⚙️</div>
+      <div class="gen-title">${getCachedLesson(dirId, profId, currentTopic.id) ? 'Загружаем урок...' : 'Генерируем урок с помощью AI...'}</div>
+      <div class="gen-sub">Тема: «${currentTopic.title}»</div>
+      <div class="gen-progress"><div class="gen-progress-fill" id="gen-fill"></div></div>
+    </div>`;
+
+    // Анимация прогресса
+    let pct = 0;
+    const interval = setInterval(() => {
+      pct = Math.min(pct + Math.random() * 15, 90);
+      const fill = document.getElementById('gen-fill');
+      if (fill) fill.style.width = pct + '%';
+    }, 300);
+
+    doneSections = get(`pu_secdone_${dirId}_${profId}_${currentTopic.id}`, []);
+    const lessonData = await generateLesson(dir, prof, currentTopic);
+    clearInterval(interval);
+
+    const sections = lessonData.sections;
+    if (!sections || !sections.length) {
+      main.innerHTML = `<div class="content-card" style="padding:40px;text-align:center;color:var(--text2)">
+        Не удалось загрузить урок. Проверь интернет-соединение.
+      </div>`;
+      return;
+    }
+
+    const sectionsHTML = sections.map((s, i) => {
+      const done = doneSections.includes(i);
+      return `<div class="section-item ${done ? 'done' : ''}" id="sec-${i}" onclick="toggleSection(${i})">
+        <div class="section-item-header">
+          <div class="section-num" id="secnum-${i}">${done ? '✓' : i+1}</div>
+          <div class="section-item-title">${s.title || `Раздел ${i+1}`}</div>
+          <div class="section-arrow">▶</div>
+        </div>
+        <div class="section-body">
+          <div class="section-theory">
+            <div class="block-label" style="margin-bottom:6px">📖 Теория</div>
+            <div class="section-text">${(s.theory || '').replace(/\n/g, '<br>')}</div>
+          </div>
+          ${s.practice ? `<div class="section-practice">
+            <div class="block-label">💪 Практика</div>
+            <div class="section-text">${s.practice.replace(/\n/g, '<br>')}</div>
+          </div>` : ''}
+          <button class="section-done-btn" id="secbtn-${i}" onclick="event.stopPropagation();markSectionDone(${i})" ${done ? 'disabled' : ''}>
+            ${done ? '✅ Выполнено' : '✅ Сделал задание — получить XP'}
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+
+    main.innerHTML = `
+      <div class="content-card">
+        <div class="content-card-header">
+          <span style="font-size:1.3rem">${prof.emoji}</span>
+          <div>
+            <div style="font-weight:900;font-size:.95rem">${currentTopic.title}</div>
+            <div style="font-size:.75rem;color:var(--text2)">${prof.name} · ${sections.length} разделов</div>
+          </div>
+          <div style="margin-left:auto;font-size:.78rem;color:var(--text3);font-weight:700">
+            ${doneSections.length}/${sections.length} выполнено
+          </div>
+        </div>
+        <div class="sections-list">${sectionsHTML}</div>
+      </div>`;
+
+    // Открыть первый невыполненный
+    const firstOpen = sections.findIndex((_, i) => !doneSections.includes(i));
+    if (firstOpen >= 0) setTimeout(() => toggleSection(firstOpen, true), 200);
+
+    initChat();
+  }
+
+  function toggleSection(idx, forceOpen) {
+    const el = document.getElementById('sec-' + idx);
+    if (!el) return;
+    const wasOpen = el.classList.contains('open');
+    // Закрыть все
+    document.querySelectorAll('.section-item.open').forEach(e => e.classList.remove('open'));
+    if (!wasOpen || forceOpen) el.classList.add('open');
+    if (!wasOpen) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function markSectionDone(idx) {
+    if (doneSections.includes(idx)) return;
+    doneSections.push(idx);
+    set(`pu_secdone_${dirId}_${profId}_${currentTopic.id}`, doneSections);
+    addXP(15, `Раздел урока: ${currentTopic.title}`);
+    updateStreak();
+
+    const btn = document.getElementById('secbtn-' + idx);
+    const num = document.getElementById('secnum-' + idx);
+    const sec = document.getElementById('sec-' + idx);
+    if (btn) { btn.disabled = true; btn.textContent = '✅ Выполнено'; }
+    if (num) num.textContent = '✓';
+    if (sec) sec.classList.add('done');
+
+    // Проверяем завершение темы
+    const sections = document.querySelectorAll('.section-item');
+    const totalSecs = sections.length;
+    if (doneSections.length >= totalSecs) {
+      markTopicDone();
+    }
+  }
+
+  function markTopicDone() {
+    if (doneTopics.includes(currentTopic.id)) return;
+    doneTopics.push(currentTopic.id);
+    set(`pu_done_${dirId}_${profId}`, doneTopics);
+    addXP(50, `Тема: ${currentTopic.title}`);
+    renderTopicsNav();
+    // Показываем поздравление
+    const main = document.getElementById('lesson-main');
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:var(--sage);color:#fff;border-radius:16px;padding:20px 24px;text-align:center;font-weight:800;font-size:1rem;margin-bottom:16px';
+    banner.innerHTML = '🎉 Тема завершена! +50 XP получено!';
+    main.prepend(banner);
+    setTimeout(() => banner.remove(), 4000);
+  }
+
+  function navigateToTopic(topicId) {
+    if (!topicId) return;
+    location.href = `proflesson.html?dir=${dirId}&prof=${profId}&topic=${topicId}`;
+  }
+
+  // ── ЧАТ ─────────────────────────────────────────────────────
+  function initChat() {
+    const chatHtml = `
+      <div class="chat-card">
+        <div class="chat-card-header">
+          <div class="chat-avatar" style="background:${dir.color}22">${prof.char_emoji}</div>
+          <div class="chat-info">
+            <div class="cname">${prof.char}</div>
+            <div class="cdesc">${prof.char_desc}</div>
+          </div>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chat-input" class="chat-input" placeholder="Спроси у ${prof.char.split(' ')[0]}...">
+          <button id="chat-send" class="chat-send-btn">→</button>
+        </div>
+      </div>`;
+
+    const main = document.getElementById('lesson-main');
+    const chatDiv = document.createElement('div');
+    chatDiv.innerHTML = chatHtml;
+    main.appendChild(chatDiv.firstElementChild);
+
+    const messagesEl = document.getElementById('chat-messages');
+    const inputEl = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send');
+
+    appendMsg('char', `Привет! Я ${prof.char} 👋 Изучаем «${currentTopic.title}». Задавай любые вопросы — объясню простым языком!`);
+
+    async function send() {
+      const text = inputEl.value.trim();
+      if (!text || chatSending) return;
+      inputEl.value = '';
+      appendMsg('user', text);
+      chatSending = true; sendBtn.disabled = true; sendBtn.textContent = '...';
+
+      const typing = document.createElement('div');
+      typing.className = 'chat-typing'; typing.id = 'typing';
+      typing.innerHTML = '<span></span><span></span><span></span>';
+      messagesEl.appendChild(typing);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+
+      try {
+        const sys = `Ты — ${prof.char}, ${prof.char_desc}. Объясняешь школьнику 12-15 лет профессию «${prof.name}» (направление: ${dir.name}). Сейчас изучается тема «${currentTopic.title}». Говори простым живым языком, с примерами из реальной жизни. Отвечай по-русски, 3-5 предложений.`;
+        const contents = [
+          ...chatHistory.slice(-6).map(m => ({ role: m.r === 'user' ? 'user' : 'model', parts: [{ text: m.t }] })),
+          { role: 'user', parts: [{ text }] }
+        ];
+        const reply = await callGemini(sys, contents);
+        document.getElementById('typing')?.remove();
+        appendMsg('char', reply);
+      } catch(e) {
+        document.getElementById('typing')?.remove();
+        appendMsg('char', 'Хм, что-то пошло не так 😅 Попробуй ещё раз!');
+      } finally {
+        chatSending = false; sendBtn.disabled = false; sendBtn.textContent = '→';
+        inputEl.focus();
+      }
+    }
+
+    sendBtn.addEventListener('click', send);
+    inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); send(); } });
+
+    function appendMsg(role, text) {
+      const div = document.createElement('div');
+      div.className = 'chat-msg ' + role;
+      div.innerHTML = text.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+      messagesEl.appendChild(div);
+      chatHistory.push({ r: role, t: text });
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+  }
+
+  // ── ИНИЦИАЛИЗАЦИЯ ────────────────────────────────────────────
+  fetch('data/profuniversity.json')
+    .then(r => r.json())
+    .then(directions => {
+      dir = directions.find(d => d.id === dirId);
+      if (!dir) return;
+      prof = dir.professions.find(p => p.id === profId);
+      if (!prof) return;
+      currentTopic = prof.topics.find(t => t.id === topicId) || prof.topics[0];
+
+      document.title = `${currentTopic.title} — ПрофУчёба 🎓`;
+
+      document.getElementById('breadcrumb').innerHTML = `
+        <a href="profuniversity.html">ПрофУчёба</a> →
+        <a href="profdir.html?id=${dirId}">${dir.emoji} ${dir.name}</a> →
+        ${prof.emoji} ${prof.name}`;
+
+      document.getElementById('prof-badge').innerHTML = `${prof.char_emoji} ${prof.char}`;
+      document.getElementById('lesson-title').textContent = currentTopic.title;
+      document.getElementById('lesson-sub').textContent = `${prof.name} · ${dir.name}`;
+
+      renderTopicsNav();
+      renderTopicNav();
+      renderLesson();
+    });
+
+  updateNavXP();
+  updateNavStreak();
+  </script>
+</body>
+</html>
