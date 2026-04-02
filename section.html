@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Секция — УмНяшка 🧠</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .section-header {
+      padding: 36px 0 20px;
+    }
+    .section-header-inner {
+      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    }
+    .section-big-emoji {
+      font-size: 3.5rem; line-height: 1;
+      background: var(--card); border-radius: 20px;
+      padding: 16px; border: 2px solid var(--border);
+    }
+    .section-header-info { flex: 1; }
+    .section-header-info h1 { font-size: 2rem; font-weight: 900; margin-bottom: 6px; }
+    .section-header-info .section-desc { color: var(--text2); font-size: 1rem; }
+    .section-char-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--card); border-radius: 14px; border: 1.5px solid var(--border);
+      padding: 10px 16px; font-weight: 700; font-size: .9rem;
+    }
+
+    .section-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
+      align-items: start;
+      margin-bottom: 48px;
+    }
+    @media (max-width: 768px) {
+      .section-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Список тем */
+    .topics-sidebar {
+      background: var(--card); border-radius: 20px;
+      border: 1.5px solid var(--border); overflow: hidden;
+      position: sticky; top: 80px;
+    }
+    .topics-sidebar-title {
+      padding: 16px 18px; font-weight: 900; font-size: .95rem;
+      border-bottom: 1px solid var(--border); color: var(--text2);
+    }
+    .topic-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px; cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background .15s; font-weight: 700; font-size: .9rem;
+    }
+    .topic-item:last-child { border-bottom: none; }
+    .topic-item:hover { background: var(--bg2); }
+    .topic-item.active { background: var(--sage-light, #e8f5ee); color: var(--sage); }
+    .topic-item.done { color: var(--text3); }
+    .topic-item-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--border); display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 900; flex-shrink: 0;
+    }
+    .topic-item.active .topic-item-num { background: var(--sage); color: #fff; }
+    .topic-item.done .topic-item-num { background: #d4edda; color: #28a745; }
+    .topic-item-xp { margin-left: auto; font-size: .75rem; color: var(--sage); font-weight: 800; }
+
+    /* Основной контент */
+    .section-main { display: flex; flex-direction: column; gap: 20px; }
+
+    .topic-content-card {
+      background: var(--card); border-radius: 20px;
+      border: 1.5px solid var(--border);
+      border-top: 5px solid var(--sc-color, var(--sage));
+      padding: 28px;
+    }
+    .topic-content-title { font-size: 1.4rem; font-weight: 900; margin-bottom: 16px; }
+    .topic-theory {
+      background: var(--bg2); border-radius: 14px;
+      padding: 18px 20px; font-size: .95rem; line-height: 1.7;
+      color: var(--text); margin-bottom: 20px;
+    }
+    .theory-label {
+      font-size: .75rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--text3); margin-bottom: 8px;
+    }
+    .exercise-card {
+      background: linear-gradient(135deg, var(--sage-pale, #f0f9f4) 0%, #fff 100%);
+      border: 1.5px solid var(--sage-border, #c8e6d0);
+      border-radius: 14px; padding: 18px 20px;
+    }
+    .exercise-label {
+      font-size: .75rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--sage); margin-bottom: 8px;
+    }
+    .exercise-text { font-size: .95rem; line-height: 1.6; color: var(--text); }
+    .done-btn {
+      margin-top: 20px; width: 100%;
+      padding: 14px; font-size: 1rem; font-weight: 800;
+      background: var(--sage); color: #fff; border: none;
+      border-radius: 14px; cursor: pointer; font-family: 'Nunito', sans-serif;
+      transition: .2s;
+    }
+    .done-btn:hover { filter: brightness(1.08); }
+    .done-btn:disabled { background: #d4edda; color: #28a745; cursor: default; }
+
+    /* Чат */
+    .chat-card {
+      background: var(--card); border-radius: 20px;
+      border: 1.5px solid var(--border);
+      overflow: hidden;
+    }
+    .chat-card-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 22px; border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .chat-char-avatar {
+      width: 46px; height: 46px; border-radius: 50%;
+      background: var(--sc-color, var(--sage));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+    }
+    .chat-char-info .name { font-weight: 900; font-size: 1rem; }
+    .chat-char-info .status { font-size: .78rem; color: var(--text2); }
+    .chat-messages {
+      height: 340px; overflow-y: auto;
+      padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .chat-msg { max-width: 80%; padding: 10px 14px; border-radius: 16px; font-size: .92rem; line-height: 1.5; }
+    .chat-msg.user { align-self: flex-end; background: var(--sage); color: #fff; border-bottom-right-radius: 4px; }
+    .chat-msg.char { align-self: flex-start; background: var(--bg2); color: var(--text); border-bottom-left-radius: 4px; }
+    .chat-typing { align-self: flex-start; display: flex; gap: 4px; padding: 12px 14px; background: var(--bg2); border-radius: 16px; border-bottom-left-radius: 4px; }
+    .chat-typing span { width: 7px; height: 7px; background: var(--text3); border-radius: 50%; animation: typing-bounce .8s infinite; }
+    .chat-typing span:nth-child(2) { animation-delay: .15s; }
+    .chat-typing span:nth-child(3) { animation-delay: .3s; }
+    @keyframes typing-bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+    .chat-input-row {
+      display: flex; gap: 8px;
+      padding: 12px 16px; border-top: 1px solid var(--border);
+    }
+    .chat-input {
+      flex: 1; padding: 10px 14px; border-radius: 12px;
+      border: 1.5px solid var(--border); background: var(--bg2);
+      font-family: 'Nunito', sans-serif; font-size: .92rem; color: var(--text);
+      outline: none;
+    }
+    .chat-input:focus { border-color: var(--sage); }
+    .chat-send-btn {
+      padding: 10px 18px; background: var(--sage); color: #fff;
+      border: none; border-radius: 12px; cursor: pointer;
+      font-weight: 800; font-family: 'Nunito', sans-serif; font-size: .92rem;
+      transition: .2s;
+    }
+    .chat-send-btn:disabled { opacity: .5; cursor: default; }
+
+    /* XP попап */
+    .xp-popup {
+      position: fixed; bottom: 80px; right: 24px;
+      background: var(--sage); color: #fff;
+      padding: 12px 20px; border-radius: 16px;
+      font-weight: 900; font-size: 1.1rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,.15);
+      animation: xp-pop .4s cubic-bezier(.175,.885,.32,1.275);
+      z-index: 1000;
+    }
+    @keyframes xp-pop { from { transform: scale(0) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+
+    .no-topic-selected {
+      text-align: center; padding: 60px 20px;
+      color: var(--text2); font-size: 1.05rem;
+    }
+    .no-topic-selected .big { font-size: 3rem; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <div class="bg-deco">
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="bg-blob blob3"></div>
+  </div>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">УмНяшка 🧠</a>
+      <button class="nav-hamburger" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
+      <div class="nav-links">
+        <a href="subjects.html">Предметы</a>
+        <a href="sections.html">Секции</a>
+        <a href="test.html">Диагностика</a>
+        <a href="profile.html">Профиль</a>
+        <span id="nav-xp" class="nav-badge">⭐ 0 XP</span>
+        <span id="nav-streak" class="nav-badge">🔥 0</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <div class="container">
+    <div class="section-header">
+      <div class="section-header-inner">
+        <div class="section-big-emoji" id="hdr-emoji">⏳</div>
+        <div class="section-header-info">
+          <div style="margin-bottom:8px">
+            <a href="sections.html" style="color:var(--text3);font-size:.85rem;font-weight:700;text-decoration:none">← Все секции</a>
+          </div>
+          <h1 id="hdr-name">Загрузка...</h1>
+          <div class="section-desc" id="hdr-desc"></div>
+        </div>
+        <div class="section-char-badge" id="hdr-char"></div>
+      </div>
+    </div>
+
+    <div class="section-layout" id="section-layout" style="display:none">
+      <!-- Боковая панель тем -->
+      <div class="topics-sidebar">
+        <div class="topics-sidebar-title">📋 Занятия</div>
+        <div id="topics-list"></div>
+      </div>
+
+      <!-- Основной контент -->
+      <div class="section-main">
+        <div id="topic-area">
+          <div class="no-topic-selected">
+            <div class="big">👈</div>
+            Выбери занятие из списка слева
+          </div>
+        </div>
+        <div id="chat-area" style="display:none">
+          <div class="chat-card">
+            <div class="chat-card-header">
+              <div class="chat-char-avatar" id="chat-avatar">?</div>
+              <div class="chat-char-info">
+                <div class="name" id="chat-char-name">Педагог</div>
+                <div class="status" id="chat-char-desc">Готов помочь</div>
+              </div>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input-row">
+              <input type="text" id="chat-input" class="chat-input" placeholder="Задай вопрос педагогу...">
+              <button id="chat-send" class="chat-send-btn">→</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2025 УмНяшка 🧠 — твой умный помощник в учёбе</p>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="config.js" onerror="console.log('config.js not found')"></script>
+  <script src="js/gemini.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const sectionId = params.get('id');
+
+    let section = null;
+    let currentTopic = null;
+    let completedTopics = get('section_done_' + sectionId, []);
+
+    // Секционные промпты для Gemini
+    const SECTION_PROMPTS = {
+      vocal:        `Ты — Алина, педагог по вокалу с 12-летним опытом. Говоришь тепло, вдохновляюще, на «ты». Помогаешь ученикам раскрыть голос — не критикуешь, а направляешь. Даёшь конкретные советы по технике. Если ученик неуверен — поддерживаешь. Отвечай по-русски, 3–5 предложений.`,
+      theatre:      `Ты — Михаил, режиссёр и педагог актёрского мастерства. Говоришь ярко, метафорично, с театральной страстью. Вдохновляешь на живую игру, критикуешь конструктивно, задаёшь вопросы которые заставляют думать. Отвечай по-русски, 3–5 предложений.`,
+      drawing:      `Ты — Настя, художник и педагог. Говоришь мягко и образно. Объясняешь через «видение», а не технику. Часто советуешь «посмотри внимательно» или «почувствуй форму». Отвечай по-русски, 3–5 предложений.`,
+      dance:        `Ты — Вика, хореограф. Говоришь энергично, с огнём. Любишь когда движение идёт изнутри, а не механически. Объясняешь через образы и чувства. Отвечай по-русски, 3–5 предложений.`,
+      photography:  `Ты — Артём, фотограф. Говоришь спокойно и наблюдательно. Учишь видеть красоту в обычном. Часто спрашиваешь «а что ты хотел передать этим кадром?». Отвечай по-русски, 3–5 предложений.`,
+      music:        `Ты — Олег, музыкант и педагог теории музыки. Говоришь с любовью к музыке. Объясняешь через слух и чувство, не через сухую теорию. Часто просишь послушать что-то. Отвечай по-русски, 3–5 предложений.`,
+      football:     `Ты — Сергей, тренер по футболу, КМС. Говоришь коротко, конкретно, по-тренерски. Требовательный, но справедливый. Даёшь чёткие инструкции. Отвечай по-русски, 3–5 предложений.`,
+      swimming:     `Ты — Анна, тренер по плаванию, мастер спорта. Говоришь спокойно и методично. Акцентируешь на технике и безопасности. Часто объясняешь через ощущение воды. Отвечай по-русски, 3–5 предложений.`,
+      lit_deep:     `Ты — Елена Ивановна, литературовед, кандидат филологических наук. Говоришь интеллигентно, с увлечением. Видишь в текстах то, что другие не замечают. Задаёшь вопросы которые меняют взгляд на произведение. Отвечай по-русски, 3–6 предложений.`,
+      bio_deep:     `Ты — Дмитрий Сергеевич, биолог-исследователь. Говоришь с научной точностью, но доступно. Любишь удивлять фактами о живом мире. Объясняешь через механизм — «а почему это работает именно так?». Отвечай по-русски, 3–6 предложений.`,
+      history_deep: `Ты — Игорь Николаевич, историк. Говоришь увлечённо, через судьбы людей. Никогда не говоришь «просто запомни» — всегда объясняешь логику событий. Любишь задавать вопрос «а что было бы если...». Отвечай по-русски, 3–6 предложений.`,
+      math_deep:    `Ты — Павел Андреевич, математик, тренер олимпиадной команды. Говоришь точно и строго, но не сухо. Никогда не даёшь готовый ответ — только наводящие вопросы и подсказки. Радуешься когда ученик сам находит решение. Отвечай по-русски, 3–5 предложений.`,
+      ecology:      `Ты — Мария, эколог-исследователь. Говоришь с тревогой за планету, но без паники — с верой в то, что каждый может изменить ситуацию. Любишь конкретные цифры и примеры из жизни. Отвечай по-русски, 3–5 предложений.`,
+    };
+
+    function getSectionPrompt(id, topic) {
+      let base = SECTION_PROMPTS[id] || `Ты — опытный педагог. Помогай ученику освоить тему. Говори дружелюбно, на «ты». Отвечай по-русски, 3–5 предложений.`;
+      if (topic) {
+        base += `\n\nСейчас занятие: «${topic.title}». Теория: ${topic.theory ? topic.theory.slice(0, 300) : ''}`;
+      }
+      return base;
+    }
+
+    function renderTopics() {
+      const list = document.getElementById('topics-list');
+      list.innerHTML = section.topics.map((t, i) => {
+        const done = completedTopics.includes(t.id);
+        const active = currentTopic && currentTopic.id === t.id;
+        return `
+          <div class="topic-item ${active ? 'active' : ''} ${done ? 'done' : ''}"
+               onclick="selectTopic('${t.id}')">
+            <div class="topic-item-num">${done ? '✓' : i + 1}</div>
+            <div style="flex:1">${t.title}</div>
+            <div class="topic-item-xp">+${t.xp} XP</div>
+          </div>`;
+      }).join('');
+    }
+
+    function selectTopic(topicId) {
+      currentTopic = section.topics.find(t => t.id === topicId);
+      if (!currentTopic) return;
+      renderTopics();
+      renderTopicContent();
+      document.getElementById('chat-area').style.display = '';
+      // Scroll on mobile
+      if (window.innerWidth < 768) {
+        document.getElementById('topic-area').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function renderTopicContent() {
+      const done = completedTopics.includes(currentTopic.id);
+      const area = document.getElementById('topic-area');
+      area.innerHTML = `
+        <div class="topic-content-card" style="--sc-color:${section.color}">
+          <div class="topic-content-title">${currentTopic.title}</div>
+          <div class="topic-theory">
+            <div class="theory-label">📖 Теория</div>
+            ${currentTopic.theory}
+          </div>
+          ${currentTopic.exercise ? `
+          <div class="exercise-card">
+            <div class="exercise-label">💪 Практика</div>
+            <div class="exercise-text">${currentTopic.exercise}</div>
+          </div>` : ''}
+          <button class="done-btn" id="done-btn" onclick="markDone()"
+            ${done ? 'disabled' : ''}>
+            ${done ? '✅ Занятие пройдено!' : '✅ Занятие выполнено — получить XP'}
+          </button>
+        </div>`;
+    }
+
+    function markDone() {
+      if (!currentTopic || completedTopics.includes(currentTopic.id)) return;
+      completedTopics.push(currentTopic.id);
+      set('section_done_' + sectionId, completedTopics);
+      addXP(currentTopic.xp, currentTopic.title);
+      updateStreak();
+      const btn = document.getElementById('done-btn');
+      if (btn) { btn.disabled = true; btn.textContent = '✅ Занятие пройдено!'; }
+      renderTopics();
+    }
+
+    // Чат
+    let chatHistory = [];
+    let chatSending = false;
+
+    function initSectionChat() {
+      const messagesEl = document.getElementById('chat-messages');
+      const inputEl = document.getElementById('chat-input');
+      const sendBtn = document.getElementById('chat-send');
+
+      document.getElementById('chat-avatar').textContent = section.char_emoji || '👤';
+      document.getElementById('chat-char-name').textContent = section.char;
+      document.getElementById('chat-char-desc').textContent = section.char_desc || '';
+
+      // Приветствие
+      const greeting = `Привет! Я ${section.char} 👋 Задавай любые вопросы по занятию — помогу разобраться!`;
+      appendChatMsg('char', greeting);
+
+      async function send() {
+        const text = inputEl.value.trim();
+        if (!text || chatSending) return;
+        inputEl.value = '';
+        appendChatMsg('user', text);
+        chatSending = true;
+        sendBtn.disabled = true; sendBtn.textContent = '...';
+
+        const typingEl = document.createElement('div');
+        typingEl.className = 'chat-typing';
+        typingEl.id = 'typing';
+        typingEl.innerHTML = '<span></span><span></span><span></span>';
+        messagesEl.appendChild(typingEl);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+
+        try {
+          const systemPrompt = getSectionPrompt(sectionId, currentTopic);
+          const contents = [
+            ...chatHistory.slice(-8).map(m => ({
+              role: m.role === 'user' ? 'user' : 'model',
+              parts: [{ text: m.text }]
+            })),
+            { role: 'user', parts: [{ text }] }
+          ];
+          const reply = await callGemini(systemPrompt, contents);
+          document.getElementById('typing')?.remove();
+          appendChatMsg('char', reply);
+        } catch(e) {
+          document.getElementById('typing')?.remove();
+          appendChatMsg('char', 'Хм, что-то пошло не так 😅 Попробуй ещё раз!');
+        } finally {
+          chatSending = false;
+          sendBtn.disabled = false; sendBtn.textContent = '→';
+          inputEl.focus();
+        }
+      }
+
+      sendBtn.addEventListener('click', send);
+      inputEl.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+      });
+
+      function appendChatMsg(role, text) {
+        const div = document.createElement('div');
+        div.className = 'chat-msg ' + role;
+        div.innerHTML = text
+          .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+          .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+          .replace(/\n/g,'<br>');
+        messagesEl.appendChild(div);
+        chatHistory.push({ role, text });
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+    }
+
+    // Загрузка секции
+    fetch('data/sections.json')
+      .then(r => r.json())
+      .then(sections => {
+        section = sections.find(s => s.id === sectionId);
+        if (!section) {
+          document.getElementById('hdr-name').textContent = 'Секция не найдена';
+          return;
+        }
+
+        document.title = section.name + ' — УмНяшка 🧠';
+        document.getElementById('hdr-emoji').textContent = section.emoji;
+        document.getElementById('hdr-name').textContent = section.name;
+        document.getElementById('hdr-desc').textContent = section.description;
+        document.getElementById('hdr-char').innerHTML =
+          `<span style="font-size:1.3rem">${section.char_emoji || '👤'}</span> ${section.char}`;
+
+        document.getElementById('section-layout').style.display = '';
+        renderTopics();
+        initSectionChat();
+
+        // Выбрать первую незавершённую тему
+        const firstUndone = section.topics.find(t => !completedTopics.includes(t.id));
+        if (firstUndone) selectTopic(firstUndone.id);
+        else if (section.topics.length) selectTopic(section.topics[0].id);
+      });
+
+    updateNavXP();
+    updateNavStreak();
+  </script>
+</body>
+</html>
