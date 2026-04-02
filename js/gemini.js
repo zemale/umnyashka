@@ -5,7 +5,7 @@
 const GEMINI_KEY = (typeof GEMINI_API_KEY !== 'undefined' && GEMINI_API_KEY !== 'REPLACE_WITH_NEW_KEY')
   ? GEMINI_API_KEY : null;
 const GEMINI_URL = GEMINI_KEY
-  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`
+  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`
   : null;
 
 const SYSTEM_PROMPTS = {
