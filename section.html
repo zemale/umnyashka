@@ -30,6 +30,58 @@
     .level-2 { background:#fff8e1; color:#f57f17; }
     .level-3 { background:#fce4ec; color:#c62828; }
 
+    /* ── Типы ввода ─────────────────────────────────────────── */
+    .input-text-area {
+      width:100%; min-height:80px; padding:12px 14px;
+      border:1.5px solid var(--border); border-radius:12px;
+      background:var(--bg2); font-family:'Nunito',sans-serif;
+      font-size:.92rem; color:var(--text); resize:vertical; outline:none;
+      margin-top:4px;
+    }
+    .input-text-area:focus { border-color:var(--sage); }
+    .image-upload-area {
+      border:2px dashed var(--border); border-radius:14px;
+      padding:24px; text-align:center; cursor:pointer;
+      transition:.2s; background:var(--bg2); margin-top:4px;
+    }
+    .image-upload-area:hover { border-color:var(--sage); background:#f0f9f4; }
+    .image-upload-area .up-icon { font-size:2rem; margin-bottom:8px; }
+    .image-upload-area .up-text { color:var(--text2); font-size:.88rem; font-weight:700; }
+    .image-preview {
+      width:100%; max-height:220px; object-fit:contain;
+      border-radius:10px; margin-top:10px; display:none;
+    }
+    .image-preview.visible { display:block; }
+    .upload-done-mark {
+      background:#e8f5ee; color:#2e7d32; border-radius:10px;
+      padding:8px 14px; font-weight:800; font-size:.85rem; text-align:center;
+      margin-top:8px;
+    }
+
+    /* ── Детальный фидбек ───────────────────────────────────── */
+    .feedback-quality-card {
+      border-radius:14px; border:1.5px solid var(--border);
+      overflow:hidden; margin-bottom:12px;
+    }
+    .fq-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 16px; background:var(--bg2);
+      border-bottom:1px solid var(--border);
+    }
+    .fq-quality { font-weight:900; font-size:.9rem; }
+    .fq-score {
+      font-size:.82rem; font-weight:800; padding:3px 10px;
+      border-radius:20px;
+    }
+    .fq-score.high { background:#e8f5ee; color:#2e7d32; }
+    .fq-score.mid  { background:#fff8e1; color:#f57f17; }
+    .fq-score.low  { background:#fce4ec; color:#c62828; }
+    .fq-body { padding:12px 16px; }
+    .fq-strength { display:flex; gap:8px; margin-bottom:6px; font-size:.88rem; line-height:1.5; }
+    .fq-strength::before { content:'✅'; flex-shrink:0; }
+    .fq-growth { display:flex; gap:8px; font-size:.88rem; line-height:1.5; color:#c56000; }
+    .fq-growth::before { content:'📈'; flex-shrink:0; }
+
     /* ── Тест ───────────────────────────────────────────────── */
     .test-overlay {
       position:fixed; inset:0; background:rgba(0,0,0,.55);
@@ -376,10 +428,7 @@
     ecology:      `Ты — Мария, эколог. Говоришь с верой в то, что каждый может изменить ситуацию. Отвечай по-русски, 3–5 предложений.`,
   };
 
-  function getEvalPrompt(sec, tasks, transcripts) {
-    const lines = tasks.map((t, i) => `Задание ${i+1}: «${t.instruction}»\nОтвет ученика: ${transcripts[i] || '(нет записи)'}`).join('\n\n');
-    return `Ты — ${sec.char}, педагог. Оцени вступительный тест ученика.\n\n${lines}\n\nОпредели уровень: 1 (Начинающий), 2 (Средний) или 3 (Продвинутый).\nДай конкретный персональный фидбэк: что хорошо, что нужно улучшить.\n\nФормат ответа строго:\nУРОВЕНЬ: [1/2/3]\nФИДБЭК: [твой комментарий, 4–6 предложений, по-русски, обращайся на «ты»]`;
-  }
+
 
   // ── АУДИО ЗАПИСЬ ────────────────────────────────────────────
   let mediaRecorder = null;
@@ -451,11 +500,37 @@
   let testStep = 0;
   let testBlobs = [];
   let testTranscripts = [];
+  let testAnswers = [];   // text answers
+  let testImages = [];    // {dataUrl, base64, mimeType} for image tasks
+
+  function onTextInput(idx) {
+    const el = document.getElementById('text-answer-' + idx);
+    if (el) {
+      testAnswers[idx] = el.value;
+      const btn = document.getElementById('btn-next');
+      if (btn) btn.disabled = !el.value.trim();
+    }
+  }
+
+  function handleImageUpload(event, idx) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const dataUrl = e.target.result;
+      const base64 = dataUrl.split(',')[1];
+      testImages[idx] = { dataUrl, base64, mimeType: file.type || 'image/jpeg' };
+      renderTestStep();
+    };
+    reader.readAsDataURL(file);
+  }
 
   function startTest() {
     testStep = 0;
     testBlobs = [];
     testTranscripts = [];
+    testAnswers = [];
+    testImages = [];
     document.getElementById('test-overlay').style.display = 'flex';
     renderTestStep();
   }
@@ -471,30 +546,59 @@
     }
 
     const task = tasks[testStep];
+    const taskType = task.type || 'voice';
     const hasBlob = !!testBlobs[testStep];
+    const hasText = !!(testAnswers[testStep] && testAnswers[testStep].trim());
+    const hasImage = !!(testImages[testStep]);
+    const hasAnswer = taskType === 'voice' ? hasBlob : taskType === 'image' ? hasImage : hasText;
+    const isLast = testStep === tasks.length - 1;
+
+    let inputHTML = '';
+    if (taskType === 'voice') {
+      inputHTML = `
+        <div class="record-area">
+          <div class="record-timer" id="rec-timer">0:00</div>
+          <div class="record-status" id="rec-status">Нажми кнопку чтобы начать запись</div>
+          <button class="record-btn" id="rec-btn" onclick="toggleRecord()">🎤</button>
+          ${hasBlob ? `<div class="rec-done-mark">✅ Записано! Можешь перезаписать или перейти дальше.</div>
+            <div class="playback-area"><audio id="playback" controls></audio></div>` : ''}
+        </div>`;
+    } else if (taskType === 'image') {
+      inputHTML = `
+        <div>
+          <label for="img-upload-${testStep}" style="cursor:pointer">
+            <div class="image-upload-area" id="img-drop-area">
+              <div class="up-icon">📷</div>
+              <div class="up-text">${hasImage ? 'Нажми чтобы заменить фото' : 'Нажми чтобы загрузить фото или рисунок'}</div>
+            </div>
+          </label>
+          <input type="file" id="img-upload-${testStep}" accept="image/*" style="display:none" onchange="handleImageUpload(event,${testStep})">
+          <img id="img-preview" class="image-preview ${hasImage ? 'visible' : ''}" src="${hasImage ? testImages[testStep].dataUrl : ''}">
+          ${hasImage ? '<div class="upload-done-mark">✅ Фото загружено!</div>' : ''}
+        </div>`;
+    } else {
+      inputHTML = `
+        <textarea class="input-text-area" id="text-answer-${testStep}"
+          placeholder="${task.placeholder || 'Твой ответ...'}"
+          oninput="onTextInput(${testStep})">${testAnswers[testStep] || ''}</textarea>`;
+    }
 
     modal.innerHTML = `
-      <h2>🎤 Вступительный тест</h2>
-      <p class="sub">Педагог оценит твои ответы и подберёт подходящий уровень</p>
+      <h2>📋 Вступительный тест</h2>
+      <p class="sub">Педагог оценит твои ответы и подберёт занятия по твоему уровню</p>
       <div class="test-progress-bar"><div class="test-progress-fill" style="width:${pct}%"></div></div>
-      <div class="test-task-num">Задание ${testStep + 1} из ${tasks.length}</div>
+      <div class="test-task-num">Вопрос ${testStep + 1} из ${tasks.length} · <strong>${task.quality || ''}</strong></div>
       <div class="test-task-text">${task.instruction}</div>
       <div class="test-task-hint">💡 ${task.hint}</div>
-      <div class="record-area">
-        <div class="record-timer" id="rec-timer">0:00</div>
-        <div class="record-status" id="rec-status">Нажми кнопку чтобы начать запись</div>
-        <button class="record-btn" id="rec-btn" onclick="toggleRecord()">🎤</button>
-        ${hasBlob ? `<div class="rec-done-mark">✅ Записано! Можешь перезаписать или перейти дальше.</div>
-          <div class="playback-area"><audio id="playback" controls></audio></div>` : ''}
-      </div>
-      <div class="test-nav">
+      ${inputHTML}
+      <div class="test-nav" style="margin-top:16px">
         <button class="btn-skip" onclick="skipTask()">Пропустить</button>
-        <button class="btn-next" id="btn-next" onclick="nextTask()" ${!hasBlob ? 'disabled' : ''}>
-          ${testStep < tasks.length - 1 ? 'Следующее →' : 'Отправить на проверку ✓'}
+        <button class="btn-next" id="btn-next" onclick="nextTask()" ${!hasAnswer ? 'disabled' : ''}>
+          ${isLast ? 'Отправить на оценку ✓' : 'Следующий →'}
         </button>
       </div>`;
 
-    if (hasBlob) {
+    if (taskType === 'voice' && hasBlob) {
       const url = URL.createObjectURL(testBlobs[testStep]);
       document.getElementById('playback').src = url;
     }
@@ -537,12 +641,20 @@
 
   function skipTask() {
     testBlobs[testStep] = null;
+    testAnswers[testStep] = '';
+    testImages[testStep] = null;
     testTranscripts[testStep] = '(нет ответа)';
     testStep++;
     renderTestStep();
   }
 
   function nextTask() {
+    // Save text answer if current task is text type
+    const task = (section.test_tasks || [])[testStep];
+    if (task && (task.type || 'voice') === 'text') {
+      const el = document.getElementById('text-answer-' + testStep);
+      if (el) testAnswers[testStep] = el.value;
+    }
     testStep++;
     renderTestStep();
   }
@@ -551,61 +663,139 @@
     modal.innerHTML = `
       <div style="text-align:center;padding:40px 0">
         <div style="font-size:3rem;margin-bottom:16px">🤔</div>
-        <h3 style="font-weight:900;margin-bottom:8px">Педагог оценивает твои ответы...</h3>
-        <p style="color:var(--text2)">Обрабатываем записи — это займёт 15–30 секунд</p>
+        <h3 style="font-weight:900;margin-bottom:8px">Педагог анализирует ответы...</h3>
+        <p style="color:var(--text2)">Готовим детальный разбор по каждому качеству</p>
         <div class="chat-typing" style="justify-content:center;margin-top:20px">
           <span></span><span></span><span></span>
         </div>
       </div>`;
 
-    // Транскрибируем все записи
+    // Собираем все ответы
+    const parts = [];  // для Gemini multimodal
+    const answerLines = [];
+
     for (let i = 0; i < tasks.length; i++) {
-      if (testBlobs[i]) {
-        try {
-          testTranscripts[i] = await transcribeAudio(testBlobs[i]);
-        } catch(e) {
-          testTranscripts[i] = '(не удалось распознать запись)';
+      const task = tasks[i];
+      const ttype = task.type || 'voice';
+      let answerText = '';
+
+      if (ttype === 'voice') {
+        if (testBlobs[i]) {
+          try {
+            answerText = await transcribeAudio(testBlobs[i]);
+          } catch(e) {
+            answerText = '(голосовой ответ — не удалось распознать)';
+          }
+        } else {
+          answerText = testTranscripts[i] || '(нет ответа)';
         }
-      } else if (!testTranscripts[i]) {
-        testTranscripts[i] = '(нет ответа)';
+        testTranscripts[i] = answerText;
+      } else if (ttype === 'text') {
+        answerText = testAnswers[i] || '(нет ответа)';
+      } else if (ttype === 'image') {
+        answerText = testImages[i] ? '[загружено изображение]' : '(нет ответа)';
+      }
+      answerLines.push(`Вопрос ${i+1} (${task.quality}): ${task.instruction}\nОтвет: ${answerText}`);
+    }
+
+    // Строим запрос к Gemini (с изображениями если есть)
+    const evalText = buildEvalPrompt(section, tasks, answerLines);
+
+    // Собираем parts для multimodal запроса
+    const geminiParts = [{ text: evalText }];
+    for (let i = 0; i < tasks.length; i++) {
+      if ((tasks[i].type || 'voice') === 'image' && testImages[i]) {
+        geminiParts.push({ inlineData: { mimeType: testImages[i].mimeType, data: testImages[i].base64 } });
       }
     }
 
-    // Просим Gemini оценить
     let level = 1;
-    let feedback = '';
+    let qualityFeedback = [];
+
     try {
-      const evalPrompt = getEvalPrompt(section, tasks, testTranscripts);
-      const result = await callGemini(
-        `Ты педагог ${section.char}. Проведи оценку вступительного теста.`,
-        [{ role: 'user', parts: [{ text: evalPrompt }] }],
-        0
-      );
+      const body = {
+        contents: [{ parts: geminiParts }],
+        systemInstruction: { parts: [{ text: `Ты — ${section.char}, ${section.char_desc}. Оцени вступительный тест ученика.` }] },
+        generationConfig: { maxOutputTokens: 2000, temperature: 0.7 }
+      };
+      const resp = await fetch(GEMINI_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const data = await resp.json();
+      const result = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+      // Парсим уровень
       const lvlMatch = result.match(/УРОВЕНЬ:\s*([123])/i);
-      const fbMatch = result.match(/ФИДБЭК:\s*([\s\S]+)/i);
       if (lvlMatch) level = parseInt(lvlMatch[1]);
-      feedback = fbMatch ? fbMatch[1].trim() : result;
+
+      // Парсим детальный фидбек по качествам
+      const blockRegex = /КАЧЕСТВО:\s*(.+?)\nСИЛА:\s*(.+?)\nРОСТ:\s*(.+?)(?=\nКАЧЕСТВО:|\nУРОВЕНЬ:|$)/gs;
+      let match;
+      while ((match = blockRegex.exec(result)) !== null) {
+        qualityFeedback.push({ quality: match[1].trim(), strength: match[2].trim(), growth: match[3].trim() });
+      }
+      // Fallback если парсинг не удался
+      if (!qualityFeedback.length) {
+        qualityFeedback = [{ quality: 'Общий вывод', strength: result.slice(0, 300), growth: 'Продолжай заниматься — прогресс обязательно будет!' }];
+      }
     } catch(e) {
-      feedback = 'Отличное начало! Я определила твой уровень на основе твоих ответов. Начнём с основ и будем двигаться вперёд.';
+      qualityFeedback = [{ quality: 'Общий вывод', strength: 'Отличный старт! Я вижу твой потенциал.', growth: 'Начнём с основ и постепенно дойдём до уверенного уровня.' }];
     }
 
-    // Сохраняем уровень
     userLevel = level;
     set('section_level_' + sectionId, level);
-
-    renderTestResult(modal, level, feedback);
+    renderTestResult(modal, level, qualityFeedback);
   }
 
-  function renderTestResult(modal, level, feedback) {
+  function buildEvalPrompt(sec, tasks, answerLines) {
+    const lines = answerLines.join('\n\n');
+    const qualityList = tasks.map(t => t.quality || '').filter(Boolean).join(', ');
+    return `Ты — ${sec.char}, педагог. Проведи детальную оценку вступительного теста ученика по секции «${sec.name}».
+
+Ответы ученика:
+${lines}
+
+Оцени КАЖДОЕ из этих качеств: ${qualityList}
+
+Для каждого качества дай структурированный ответ в точном формате:
+
+КАЧЕСТВО: [название качества]
+СИЛА: [что уже хорошо — конкретно, 1–2 предложения]
+РОСТ: [конкретный совет что улучшить и как — 1–2 предложения]
+
+После всех качеств — общий итог:
+УРОВЕНЬ: [1 = Начинающий, 2 = Средний, 3 = Продвинутый]
+
+Обращайся к ученику на «ты». Говори как педагог — тепло, конкретно, с верой в ученика.`;
+  }
+
+  function renderTestResult(modal, level, qualityFeedback) {
     const lvlEmoji = ['','🌱','🔥','⭐'][level];
     const lvlName = ['','Начинающий','Средний','Продвинутый'][level];
+
+    const feedbackHTML = qualityFeedback.map(qf => {
+      // Определяем «силу» по тону ответа
+      const scoreCls = qf.strength && qf.strength.length > 20 ? 'high' : 'mid';
+      return `
+        <div class="feedback-quality-card">
+          <div class="fq-header">
+            <span class="fq-quality">${qf.quality}</span>
+          </div>
+          <div class="fq-body">
+            <div class="fq-strength">${qf.strength}</div>
+            <div class="fq-growth">${qf.growth}</div>
+          </div>
+        </div>`;
+    }).join('');
+
     modal.innerHTML = `
       <div class="test-result">
         <div class="level-big">${lvlEmoji}</div>
         <h3>Твой уровень: ${lvlName}</h3>
-        <div class="test-feedback">${feedback.replace(/\n/g,'<br>')}</div>
-        <button class="start-learning-btn" onclick="closeTest()">
-          Начать занятия на уровне «${lvlName}» →
+        <p style="color:var(--text2);margin-bottom:20px;font-size:.9rem">Детальный разбор от педагога по каждому качеству:</p>
+        <div style="text-align:left;max-height:55vh;overflow-y:auto;padding-right:4px">
+          ${feedbackHTML}
+        </div>
+        <button class="start-learning-btn" style="margin-top:16px" onclick="closeTest()">
+          Начать занятия «${lvlName}» →
         </button>
       </div>`;
   }
