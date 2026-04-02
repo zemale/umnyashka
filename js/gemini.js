@@ -2,8 +2,9 @@
 // API key loaded from config.js (not in git!)
 // If config.js missing or key invalid → smart offline mode
 
+const _FALLBACK_KEY = 'AIzaSyAtXkXEtnaRgrMwAbmazEziHHoXtufsfkM';
 const GEMINI_KEY = (typeof GEMINI_API_KEY !== 'undefined' && GEMINI_API_KEY !== 'REPLACE_WITH_NEW_KEY')
-  ? GEMINI_API_KEY : null;
+  ? GEMINI_API_KEY : _FALLBACK_KEY;
 const GEMINI_URL = GEMINI_KEY
   ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`
   : null;
