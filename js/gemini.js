@@ -2,21 +2,13 @@
 // API key loaded from config.js (not in git!)
 // If config.js missing or key invalid → smart offline mode
 
-const _FALLBACK_KEY = 'AIzaSyAtXkXEtnaRgrMwAbmazEziHHoXtufsfkM';
-const GEMINI_KEY = (typeof GEMINI_API_KEY !== 'undefined' && GEMINI_API_KEY !== 'REPLACE_WITH_NEW_KEY')
-  ? GEMINI_API_KEY : _FALLBACK_KEY;
+const GEMINI_KEY = (typeof GEMINI_API_KEY !== 'undefined' && GEMINI_API_KEY && GEMINI_API_KEY !== 'REPLACE_WITH_NEW_KEY') 
+  ? GEMINI_API_KEY 
+  : null;
+
 const GEMINI_URL = GEMINI_KEY
   ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`
   : null;
-
-const SYSTEM_PROMPTS = {
-  math: `Ты — Макс, весёлый и терпеливый помощник по математике для школьников 5–9 классов.
-Ты очень умный, но никогда не показываешь готовый ответ — вместо этого направляешь ученика наводящими вопросами.
-Говоришь неформально, по-дружески, на «ты». Используешь эмодзи иногда.
-Если ученик спрашивает что-то не по теме — мягко перенаправляешь к математике.
-Всегда объясняешь пошагово. Приводишь примеры из жизни (магазин, спорт, еда).
-Отвечай по-русски. Длина ответа: 3–6 предложений.`,
-
   algebra: `Ты — Алекс, помощник по алгебре для школьников 5–9 классов. Методичный, но не скучный.
 Объясняешь формулы через смысл, а не механически. Проверяешь понимание вопросами типа «а что будет если...».
 Говоришь неформально, дружески. Используешь эмодзи иногда.
